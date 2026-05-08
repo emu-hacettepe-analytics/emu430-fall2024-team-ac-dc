@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Team AC/DC",
     "section": "",
-    "text": "This is our project webpage.\nPlease stay tuned to follow our project activities.\n\nTeam Members\n\nAzra AZİZOĞLU\nCeren DÖLEK\nİlayda GENÇTAV\nMeryem ŞİMAYLİ\nÖmer Faruk YÜCEL\nÖznur MEYDAN\n\n\n\nProject Topic\n\n\n\n\n\n\nTipOur Goal\n\n\n\nThis project evaluates the sufficiency of electric vehicle (EV) charging infrastructure across cities in Türkiye. By analyzing both supply and demand, we aim to identify regions where charging demand exceeds available capacity and provide data-driven investment recommendations for new stations.\nKey Data Components: * Demand: Number of registered EVs by city (TÜİK) and average energy consumption per session. * Supply: Charging station locations, socket counts, and power capacities (EPDK).\n\n\n\n\n\n\n Back to top"
+    "text": "This is our project webpage.\n\n\n\n\n\nPlease stay tuned to follow our project activities.\n\nTeam Members\n\nAzra AZİZOĞLU\nCeren DÖLEK\nİlayda GENÇTAV\nMeryem ŞİMAYLİ\nÖmer Faruk YÜCEL\nÖznur MEYDAN\n\n\n\nProject Topic\n\n\n\n\n\n\nTipOur Goal\n\n\n\nThis project evaluates the sufficiency of electric vehicle (EV) charging infrastructure across cities in Türkiye. By analyzing both supply and demand, we aim to identify regions where charging demand exceeds available capacity and provide data-driven investment recommendations for new stations.\nKey Data Components: * Demand: Number of registered EVs by city (TÜİK) and average energy consumption per session. * Supply: Charging station locations, socket counts, and power capacities (EPDK).\n\n\n\n\n\n\n Back to top"
   },
   {
     "objectID": "about.html",
@@ -31,8 +31,8 @@
     "objectID": "analysis.html#about-this-site",
     "href": "analysis.html#about-this-site",
     "title": "Analysis",
-    "section": "About This Site",
-    "text": "About This Site\nThis page presents our core analysis and key findings. Here, you will explore interactive maps, data visualizations, and detailed insights derived from our current datasets to understand electric vehicle trends."
+    "section": "",
+    "text": "This page presents our core analysis and key findings. Here, you will explore interactive maps, data visualizations, and detailed insights derived from our current datasets to understand electric vehicle trends."
   },
   {
     "objectID": "analysis.html#electric-vehicle-density-by-city",

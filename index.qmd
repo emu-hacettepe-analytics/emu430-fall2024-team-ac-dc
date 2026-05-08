@@ -6,6 +6,8 @@ theme: lux
 
 This is our project webpage.
 
+![](simsek-mcqueen.gif){style="border-radius: 10px;" fig-align="center" style="border-radius: 10px;"}
+
 Please stay tuned to follow our project activities.
 
 # Team Members
