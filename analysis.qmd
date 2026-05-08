@@ -9,7 +9,6 @@ execute:
   warning: false
   message: false
 ---
-
 ## About This Site
 
 This page presents our core analysis and key findings. Here, you will explore interactive maps, data visualizations, and detailed insights derived from our current datasets to understand electric vehicle trends.

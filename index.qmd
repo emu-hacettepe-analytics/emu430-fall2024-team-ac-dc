@@ -29,6 +29,5 @@ Please stay tuned to follow our project activities.
 ::: {.callout-tip title="Our Goal"}
 This project evaluates the sufficiency of electric vehicle (EV) charging infrastructure across cities in Türkiye. By analyzing both supply and demand, we aim to identify regions where charging demand exceeds available capacity and provide data-driven investment recommendations for new stations.
 
-**Key Data Components:**
-* **Demand:** Number of registered EVs by city (TÜİK) and average energy consumption per session.
-* **Supply:** Charging station locations, socket counts, and power capacities (EPDK).
+**Key Data Components:** \* **Demand:** Number of registered EVs by city (TÜİK) and average energy consumption per session. \* **Supply:** Charging station locations, socket counts, and power capacities (EPDK).
+:::
