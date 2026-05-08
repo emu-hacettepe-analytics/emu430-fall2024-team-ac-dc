@@ -2,9 +2,9 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "Team XXX",
+    "title": "Team AC/DC",
     "section": "",
-    "text": "This is our project webpage.\nPlease stay tuned to follow our project activities.\nThis is our template.\n\nTeam Members\n\nEdin_Džeko\nDušan Tadić\nFrederico Rodrigues de Paula Santos\nSebastian Szymański\n\n\n\nProject Topic\n\n\nData Set\n\n\n\n\n Back to top"
+    "text": "This is our project webpage.\nPlease stay tuned to follow our project activities.\n\nTeam Members\n\nAzra AZİZOĞLU\nCeren DÖLEK\nİlayda GENÇTAV\nMeryem ŞİMAYLİ\nÖmer Faruk YÜCEL\nÖznur MEYDAN\n\n\n\nProject Topic\n\n\n\n\n\n\nTipOur Goal\n\n\n\nThis project evaluates the sufficiency of electric vehicle (EV) charging infrastructure across cities in Türkiye. By analyzing both supply and demand, we aim to identify regions where charging demand exceeds available capacity and provide data-driven investment recommendations for new stations.\nKey Data Components: * Demand: Number of registered EVs by city (TÜİK) and average energy consumption per session. * Supply: Charging station locations, socket counts, and power capacities (EPDK).\n\n\n\n\n\n\n Back to top"
   },
   {
     "objectID": "about.html",
@@ -18,7 +18,7 @@
     "href": "analysis.html",
     "title": "Analysis",
     "section": "",
-    "text": "About this site\n\n1 + 1\n\n[1] 2\n\n\n\n\n\n Back to top"
+    "text": "This page presents our core analysis and key findings. Here, you will explore interactive maps, data visualizations, and detailed insights derived from our current datasets to understand electric vehicle trends."
   },
   {
     "objectID": "data.html",
@@ -26,5 +26,19 @@
     "title": "Data",
     "section": "",
     "text": "Data source: xxx\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "analysis.html#about-this-site",
+    "href": "analysis.html#about-this-site",
+    "title": "Analysis",
+    "section": "About This Site",
+    "text": "About This Site\nThis page presents our core analysis and key findings. Here, you will explore interactive maps, data visualizations, and detailed insights derived from our current datasets to understand electric vehicle trends."
+  },
+  {
+    "objectID": "analysis.html#electric-vehicle-density-by-city",
+    "href": "analysis.html#electric-vehicle-density-by-city",
+    "title": "Analysis",
+    "section": "Electric Vehicle Density by City",
+    "text": "Electric Vehicle Density by City\nThis density map visualizes the current distribution of electric vehicles. Cities are color-coded based on their total vehicle count, with darker shades indicating higher numbers. You can hover over any city to view its exact number of electric vehicles.\n\n\nShow the code\nlibrary(dplyr)\nlibrary(tidyverse)\nlibrary(sf)\nlibrary(leaflet)\nlibrary(rnaturalearth)\nlibrary(stringi)\n\ndf &lt;- read.csv(\"C:/Users/crndo/OneDrive/Belgeler/emu430-fall2024-team-ac-dc/NumofEV.csv\", \n                     header = TRUE, \n                     sep = \";\",\n                     encoding = \"UTF-8\")\n\ntr_map &lt;- ne_states(country = \"Turkey\", returnclass = \"sf\")\n\nplot(st_geometry(tr_map))\n\n\n\n\n\n\n\n\n\nShow the code\ndf$City &lt;- stri_trans_general(df$City, \"latin-ascii\")\n\ntr_map$name &lt;- stri_trans_general(tr_map$name, \"latin-ascii\")\n\n\ndf &lt;- df %&gt;%\n  mutate(City = case_when(\n    City == \"Zonguldak\" ~ \"Zinguldak\",\n    City == \"Kahramanmaras\" ~ \"K. Maras\",\n    City == \"Kirikkale\" ~ \"Kinkkale\",\n    TRUE ~ City\n  )) \n\nharita_veri &lt;- left_join(tr_map, df, by = c(\"name\" = \"City\"))\n\nharita_veri &lt;- harita_veri %&gt;%\n  mutate(EVcount_log = log10(EVcount + 1))\n\npal &lt;- colorNumeric(palette = \"YlOrRd\", domain = harita_veri$EVcount_log, na.color = \"transparent\")\n\nleaflet(harita_veri) %&gt;%\n  addProviderTiles(providers$CartoDB.Positron) %&gt;% \n  addPolygons(\n    fillColor = ~pal(EVcount_log),             \n    weight = 1,                                  \n    opacity = 1,\n    color = \"white\",                             \n    fillOpacity = 0.7,\n    highlightOptions = highlightOptions(         \n      weight = 3,\n      color = \"#666\",\n      fillOpacity = 0.9,\n      bringToFront = TRUE),\n    label = ~paste0(name, \": \", EVcount), \n    labelOptions = labelOptions(\n      style = list(\"font-weight\" = \"normal\", padding = \"3px 8px\"),\n      textsize = \"13px\",\n      direction = \"auto\")\n  ) %&gt;%\n  addLegend(pal = pal, \n            values = ~EVcount_log,             \n            opacity = 0.7, \n            title = \"Number of Electric Vehicles\",\n            position = \"bottomright\",\n            labFormat = labelFormat(transform = function(x) round(10^x - 1),\n                                    big.mark = \",\")\n            )"
   }
 ]

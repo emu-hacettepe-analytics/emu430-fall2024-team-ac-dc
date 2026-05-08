@@ -1,9 +1,93 @@
 ---
 title: "Analysis"
+format: 
+  html:
+    code-fold: true
+    theme: lux
+    code-summary: "Show the code"
+execute:
+  warning: false
+  message: false
 ---
 
-About this site
+![](simsek-mcqueen.gif){style="border-radius: 10px;" fig-align="center" style="border-radius: 10px;"}
+
+## About This Site
+
+This page presents our core analysis and key findings. Here, you will explore interactive maps, data visualizations, and detailed insights derived from our current datasets to understand electric vehicle trends.
+
+## Electric Vehicle Density by City
+
+This density map visualizes the current distribution of electric vehicles. Cities are color-coded based on their total vehicle count, with darker shades indicating higher numbers. You can hover over any city to view its exact number of electric vehicles.
 
 ```{r}
-1 + 1
+#| code-fold: true
+#| code-summary: "Show the code"
+#| warning: false
+#| message: false
+
+
+library(dplyr)
+library(tidyverse)
+library(sf)
+library(leaflet)
+library(rnaturalearth)
+library(stringi)
+
+df <- read.csv("C:/Users/crndo/OneDrive/Belgeler/emu430-fall2024-team-ac-dc/NumofEV.csv", 
+                     header = TRUE, 
+                     sep = ";",
+                     encoding = "UTF-8")
+
+tr_map <- ne_states(country = "Turkey", returnclass = "sf")
+
+plot(st_geometry(tr_map))
+
+df$City <- stri_trans_general(df$City, "latin-ascii")
+
+tr_map$name <- stri_trans_general(tr_map$name, "latin-ascii")
+
+
+df <- df %>%
+  mutate(City = case_when(
+    City == "Zonguldak" ~ "Zinguldak",
+    City == "Kahramanmaras" ~ "K. Maras",
+    City == "Kirikkale" ~ "Kinkkale",
+    TRUE ~ City
+  )) 
+
+harita_veri <- left_join(tr_map, df, by = c("name" = "City"))
+
+harita_veri <- harita_veri %>%
+  mutate(EVcount_log = log10(EVcount + 1))
+
+pal <- colorNumeric(palette = "YlOrRd", domain = harita_veri$EVcount_log, na.color = "transparent")
+
+leaflet(harita_veri) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addPolygons(
+    fillColor = ~pal(EVcount_log),             
+    weight = 1,                                  
+    opacity = 1,
+    color = "white",                             
+    fillOpacity = 0.7,
+    highlightOptions = highlightOptions(         
+      weight = 3,
+      color = "#666",
+      fillOpacity = 0.9,
+      bringToFront = TRUE),
+    label = ~paste0(name, ": ", EVcount), 
+    labelOptions = labelOptions(
+      style = list("font-weight" = "normal", padding = "3px 8px"),
+      textsize = "13px",
+      direction = "auto")
+  ) %>%
+  addLegend(pal = pal, 
+            values = ~EVcount_log,             
+            opacity = 0.7, 
+            title = "Number of Electric Vehicles",
+            position = "bottomright",
+            labFormat = labelFormat(transform = function(x) round(10^x - 1),
+                                    big.mark = ",")
+            )
 ```

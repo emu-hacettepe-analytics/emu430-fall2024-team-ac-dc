@@ -3,7 +3,7 @@ project:
   output-dir: docs
 
 website:
-  title: "xxx' Project Lab"
+  title: "AC/DC Team Project Lab"
   navbar:
     search: true
     left:
@@ -17,7 +17,7 @@ website:
             
     tools:
       - icon: github
-        href: https://twitter.com
+        href: https://github.com/emu-hacettepe-analytics/emu430-spring2026-cerendolek
 
   page-navigation: true
   back-to-top-navigation: true
