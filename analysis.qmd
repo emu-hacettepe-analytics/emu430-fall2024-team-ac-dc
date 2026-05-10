@@ -9,6 +9,7 @@ execute:
   warning: false
   message: false
 ---
+
 ## About This Site
 
 This page presents our core analysis and key findings. Here, you will explore interactive maps, data visualizations, and detailed insights derived from our current datasets to understand electric vehicle trends.
@@ -31,10 +32,10 @@ library(leaflet)
 library(rnaturalearth)
 library(stringi)
 
-df <- read.csv("C:/Users/crndo/OneDrive/Belgeler/emu430-fall2024-team-ac-dc/NumofEV.csv", 
-                     header = TRUE, 
-                     sep = ";",
-                     encoding = "UTF-8")
+df <- read.csv("NumofEV.csv", 
+               header = TRUE, 
+               sep = ";",
+               encoding = "UTF-8")
 
 tr_map <- ne_states(country = "Turkey", returnclass = "sf")
 
@@ -88,3 +89,248 @@ leaflet(harita_veri) %>%
                                     big.mark = ",")
             )
 ```
+
+# 4. Route and Spatial Analysis
+
+## 4.1 Highway Corridor Coverage
+
+In this section, we analyze the spatial relationship between existing charging stations and road traffic density. The data was pre-processed to clean city names, validate geometries, and calculate the Average Annual Daily Traffic for various route segments.
+
+```{r}
+#| label: meryem-analysis
+#| code-fold: true
+#| warning: false
+#| message: false
+
+# ============================================================
+# 0. PACKAGES & INITIAL CONFIG
+# ============================================================
+
+options(timeout = 600)
+
+library(sf)
+if (Sys.info()[["sysname"]] == "Darwin") {
+  Sys.setenv(PROJ_LIB = system.file("proj", package = "sf"))
+}
+library(readr)
+library(readxl)
+library(dplyr)
+library(stringr)
+library(stringi)
+library(leaflet)
+library(htmltools)
+library(scales)
+library(geodata)
+library(terra)
+library(lwgeom)
+
+# ============================================================
+# 1. RELATIVE FILE PATHS
+# ============================================================
+# MAKE SURE THESE FILES ARE UPLOADED TO THE REPOSITORY!
+socket_path <- "enlemboylam.xlsx"
+devlet_path <- "devlet_yollari_tek_satir_wkt.csv"
+bolge_path  <- "tam_kapsamli_18_bolge_analizi.csv"
+roads_excel_path <- "roads_D_yol_adi_eklendi.xlsx"
+
+# ============================================================
+# 2. HELPER FUNCTIONS
+# ============================================================
+
+find_col <- function(df, patterns) {
+  nms <- names(df)
+  nms_lower <- tolower(nms)
+  for (p in patterns) {
+    hit <- which(str_detect(nms_lower, p))
+    if (length(hit) > 0) return(nms[hit[1]])
+  }
+  return(NA_character_)
+}
+
+to_num_tr <- function(x) {
+  if (is.numeric(x)) return(x)
+  x <- as.character(x)
+  x <- str_replace_all(x, "\\.", "")
+  x <- str_replace_all(x, ",", ".")
+  suppressWarnings(as.numeric(x))
+}
+
+clean_kkno <- function(x) {
+  x <- as.character(x)
+  x <- str_trim(x)
+  x <- str_replace_all(x, "\\s+", "")
+  kk <- str_extract(x, "\\d{2,3}-\\d{1,2}")
+  kk <- ifelse(!is.na(kk),
+               paste0(str_extract(kk, "^\\d{2,3}"), "-", str_pad(str_extract(kk, "(?<=-)\\d{1,2}"), width = 2, pad = "0")),
+               NA_character_)
+  kk
+}
+
+clean_city <- function(x) {
+  x <- as.character(x)
+  x <- str_trim(x)
+  x <- str_to_upper(x, locale = "tr")
+  x <- stri_trans_general(x, "Latin-ASCII")
+  x <- str_replace_all(x, "\\s+", " ")
+  x
+}
+
+normalize_city_key <- function(x) {
+  x <- clean_city(x)
+  x <- case_when(
+    x %in% c("AFYON", "AFYONKARAHISAR") ~ "AFYONKARAHISAR",
+    x %in% c("ICEL", "MERSIN") ~ "MERSIN",
+    x %in% c("KAHRAMANMARAS", "K MARAS", "K.MARAS") ~ "KAHRAMANMARAS",
+    x %in% c("SANLIURFA", "S URFA", "S.URFA") ~ "SANLIURFA",
+    TRUE ~ x
+  )
+  x
+}
+
+safe_make_valid <- function(x) {
+  x <- st_make_valid(x)
+  x <- st_collection_extract(x, "LINESTRING", warn = FALSE)
+  x
+}
+
+# ============================================================
+# 3. READ ALL CHARGING STATIONS (NO BRAND FILTER)
+# ============================================================
+
+socket_sheets <- excel_sheets(socket_path)
+socket_raw <- lapply(socket_sheets, function(sh) {
+  read_excel(socket_path, sheet = sh) %>% mutate(source_sheet = sh)
+}) %>% bind_rows()
+
+names(socket_raw) <- str_trim(names(socket_raw))
+lon_col <- find_col(socket_raw, c("boylam", "longitude", "^lon$", "lng", "^x$"))
+lat_col <- find_col(socket_raw, c("enlem", "latitude", "^lat$", "^y$"))
+
+socket_clean <- socket_raw %>%
+  mutate(lon = to_num_tr(.data[[lon_col]]), lat = to_num_tr(.data[[lat_col]])) %>%
+  filter(!is.na(lon), !is.na(lat), lon >= 25, lon <= 46, lat >= 35, lat <= 43)
+
+set.seed(42)
+socket_clean <- socket_clean %>%
+  mutate(
+    lon_plot = lon + runif(n(), -0.005, 0.005),
+    lat_plot = lat + runif(n(), -0.005, 0.005),
+    popup = "<b>Charging Station</b>"
+  )
+
+# ============================================================
+# 4. READ ROAD DENSITY DATA
+# ============================================================
+
+devlet_yogt_excel <- read_excel(roads_excel_path, sheet = "devlet_yolları")
+kkno_col <- find_col(devlet_yogt_excel, c("^kkno$", "kkno"))
+city_col_excel <- find_col(devlet_yogt_excel, c("^ili$", "^il$", "şehir", "sehir"))
+oto_yogt_col <- find_col(devlet_yogt_excel, c("otomobil"))
+
+road_car_density_city <- devlet_yogt_excel %>%
+  mutate(kkno_key = clean_kkno(.data[[kkno_col]]),
+         city_key = normalize_city_key(.data[[city_col_excel]]),
+         car_aadt = to_num_tr(.data[[oto_yogt_col]])) %>%
+  filter(!is.na(kkno_key), !is.na(city_key), !is.na(car_aadt)) %>%
+  group_by(kkno_key, city_key) %>%
+  summarise(car_aadt_avg = mean(car_aadt, na.rm = TRUE), .groups = "drop")
+
+# ============================================================
+# 5. READ GEOMETRIES
+# ============================================================
+
+devlet_csv <- read_csv(devlet_path, locale = locale(encoding = "UTF-8"), show_col_types = FALSE)
+devlet_csv$kkno_raw <- if("KKNO" %in% names(devlet_csv)) as.character(devlet_csv$KKNO) else as.character(devlet_csv$kkno)
+devlet_wkt_col <- if ("WKT_LINESTRING" %in% names(devlet_csv)) "WKT_LINESTRING" else "geometry"
+
+devlet_sf <- devlet_csv %>%
+  filter(!is.na(.data[[devlet_wkt_col]]), str_detect(.data[[devlet_wkt_col]], "LINESTRING")) %>%
+  mutate(kkno_key = clean_kkno(kkno_raw), WKT_ROUTE = as.character(.data[[devlet_wkt_col]])) %>%
+  filter(!is.na(kkno_key)) %>%
+  st_as_sf(wkt = "WKT_ROUTE", crs = 4326) %>% safe_make_valid()
+
+bolge_csv <- read_csv(bolge_path, locale = locale(encoding = "UTF-8"), show_col_types = FALSE)
+bolge_csv$kkno_raw <- if("kkno" %in% names(bolge_csv)) as.character(bolge_csv$kkno) else as.character(bolge_csv$KKNO)
+bolge_geom_col <- if ("geometry" %in% names(bolge_csv)) "geometry" else "WKT_LINESTRING"
+
+bolge_sf <- bolge_csv %>%
+  filter(!is.na(.data[[bolge_geom_col]]), str_detect(.data[[bolge_geom_col]], "LINESTRING")) %>%
+  mutate(kkno_key = clean_kkno(kkno_raw), WKT_ROUTE = as.character(.data[[bolge_geom_col]])) %>%
+  filter(!is.na(kkno_key)) %>%
+  st_as_sf(wkt = "WKT_ROUTE", crs = 4326) %>% safe_make_valid()
+
+# ============================================================
+# 7. COMBINE & SPLIT BY PROVINCE
+# ============================================================
+
+routes_raw_sf <- bind_rows(devlet_sf %>% select(kkno_key), bolge_sf %>% select(kkno_key))
+routes_raw_sf <- routes_raw_sf[!st_is_empty(routes_raw_sf), ]
+
+# NOTE: gadm path requires caching, it will be downloaded if it does not exist locally.
+tur_adm1 <- geodata::gadm(country = "TUR", level = 1, path = tempdir())
+tur_provinces <- st_as_sf(tur_adm1) %>% st_transform(4326) %>%
+  mutate(city_key = normalize_city_key(NAME_1)) %>% select(city_key, geometry) %>% st_make_valid()
+
+routes_by_city <- suppressWarnings(st_intersection(st_transform(routes_raw_sf, 3857), st_transform(tur_provinces, 3857))) %>%
+  st_collection_extract("LINESTRING") %>% st_transform(4326)
+
+# ============================================================
+# 10. DENSITY CALCULATION & STYLING
+# ============================================================
+
+routes_density_sf <- routes_by_city %>%
+  left_join(road_car_density_city, by = c("kkno_key", "city_key")) %>%
+  filter(!is.na(car_aadt_avg)) %>%
+  mutate(
+    density_class = cut(car_aadt_avg, breaks = c(0, 10000, 25000, 50000, 100000, Inf),
+                        labels = c("0 - 10.000", "10.000 - 25.000", "25.000 - 50.000", "50.000 - 100.000", "100.000+"), include.lowest = TRUE),
+    route_weight = case_when(
+      density_class == "0 - 10.000" ~ 1.2, density_class == "10.000 - 25.000" ~ 1.5,
+      density_class == "25.000 - 50.000" ~ 1.9, density_class == "50.000 - 100.000" ~ 2.3,
+      density_class == "100.000+" ~ 2.8, TRUE ~ 1.5
+    )
+  )
+
+route_palette <- c("0 - 10.000"="#E6FF05", "10.000 - 25.000"="#F5CC27", "25.000 - 50.000"="#FF9B05", "50.000 - 100.000"="#FF0000", "100.000+"="#A30500")
+
+# ============================================================
+# 14. LEAFLET MAP (POINT BASED - ROAD VISIBILITY FOCUSED)
+# ============================================================
+
+legend_html <- HTML("<div style='background:white;padding:10px;border-radius:6px;box-shadow:0 0 8px rgba(0,0,0,0.2);font-size:11px;'>
+                    <b>Road Traffic Density</b><br>
+                    <span style='background:#E6FF05;width:20px;height:4px;display:inline-block;'></span> 0-10k<br>
+                    <span style='background:#F5CC27;width:20px;height:4px;display:inline-block;'></span> 10-25k<br>
+                    <span style='background:#FF9B05;width:20px;height:4px;display:inline-block;'></span> 25-50k<br>
+                    <span style='background:#FF0000;width:20px;height:4px;display:inline-block;'></span> 50-100k<br>
+                    <span style='background:#A30500;width:20px;height:4px;display:inline-block;'></span> 100k+<br><br>
+                    <b>Charging Stations</b><br>
+                    <span style='color:#2c7bb6;'>●</span> Point Distribution</div>")
+
+m <- leaflet(options = leafletOptions(preferCanvas = TRUE)) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  setView(lng = 35.2, lat = 39.0, zoom = 6)
+
+# Yollar
+density_order <- levels(routes_density_sf$density_class)
+for (cls in density_order) {
+  temp <- routes_density_sf %>% filter(density_class == cls)
+  if (nrow(temp) > 0) {
+    m <- m %>% addPolylines(data = temp, color = route_palette[[cls]], weight = ~route_weight, opacity = 0.85, group = "Roads")
+  }
+}
+
+# Istasyonlar
+m <- m %>% addCircleMarkers(
+  data = socket_clean, lng = ~lon_plot, lat = ~lat_plot,
+  radius = 1,
+  stroke = FALSE, 
+  fillColor = "#2c7bb6",
+  fillOpacity = 0.5,
+  group = "Charging Stations"
+) %>%
+  addLayersControl(overlayGroups = c("Roads", "Charging Stations"), options = layersControlOptions(collapsed = FALSE)) %>%
+  addControl(legend_html, position = "bottomright")
+m
+```
+
