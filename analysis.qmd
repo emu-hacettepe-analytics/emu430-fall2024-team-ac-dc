@@ -15,7 +15,7 @@ execute:
 ## Türkiye Electric Vehicle Charging Infrastructure
 
 <<<<<<< HEAD
-This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
+AAThis analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
 =======
 <<<<<<< Updated upstream
 Öznur This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
