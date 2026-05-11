@@ -11,17 +11,18 @@ execute:
   warning: false
   message: false
 ---
+
 ## Türkiye Electric Vehicle Charging Infrastructure
 
-Meryem This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
+Öznur This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
 
 ::: {.callout-note title="Key Market Indicators"}
-| Indicator | Value | Period |
-|---|---:|---|
-| Total Sockets | 41,767 | April 2026 |
-| Electric Vehicles | 408,314 | April 2026 |
-| Monthly Charging Sessions | 2.62 Mn | March 2026 |
-| Total Energy Consumption | 67.5 GWh | March 2026 |
+| Indicator                 |    Value | Period     |
+|---------------------------|---------:|------------|
+| Total Sockets             |   41,767 | April 2026 |
+| Electric Vehicles         |  408,314 | April 2026 |
+| Monthly Charging Sessions |  2.62 Mn | March 2026 |
+| Total Energy Consumption  | 67.5 GWh | March 2026 |
 :::
 
 ## 1. Executive Summary
@@ -30,11 +31,11 @@ Türkiye’s electric vehicle charging infrastructure has entered a period of ra
 
 This analysis examines Türkiye’s charging market structure, competitive environment, geographical distribution, and the infrastructure strategies of leading operators. The main findings are summarized below:
 
-- The market remains fragmented, with a low level of concentration. The Herfindahl-Hirschman Index has consistently stayed below the 1,500 threshold, indicating healthy competition among more than 175 licensed operators.
-- ZES is the leading operator in terms of total socket count, while Trugo stands out in terms of energy volume with **13,526 MWh** in March 2026.
-- DC fast charging accounts for approximately **43%** of all sockets, showing the growing importance of fast-charging infrastructure.
-- İstanbul and Ankara together account for approximately **46%** of electricity consumption at charging stations, reflecting strong urban concentration.
-- Charging infrastructure is especially concentrated in western metropolitan areas and along major intercity highway corridors.
+-   The market remains fragmented, with a low level of concentration. The Herfindahl-Hirschman Index has consistently stayed below the 1,500 threshold, indicating healthy competition among more than 175 licensed operators.
+-   ZES is the leading operator in terms of total socket count, while Trugo stands out in terms of energy volume with **13,526 MWh** in March 2026.
+-   DC fast charging accounts for approximately **43%** of all sockets, showing the growing importance of fast-charging infrastructure.
+-   İstanbul and Ankara together account for approximately **46%** of electricity consumption at charging stations, reflecting strong urban concentration.
+-   Charging infrastructure is especially concentrated in western metropolitan areas and along major intercity highway corridors.
 
 ## 2. Market Overview
 
@@ -43,7 +44,6 @@ This analysis examines Türkiye’s charging market structure, competitive envir
 Türkiye’s electric vehicle fleet has shown exponential growth over the last decade. Starting from a very small base of **737 vehicles in 2016**, the total number increased to **373,733 by the end of 2025** and reached **408,314 as of 23 April 2026**. This represents an increase of approximately **35,000 vehicles in only four months**.
 
 However, the number of electric vehicles and the number of charging sockets are not directly proportional across provinces. Some cities have high EV ownership and dense charging infrastructure, while others still show infrastructure gaps. Therefore, city level EV density should be analyzed together with socket availability, operator presence, and road traffic intensity.
-
 
 ```{r}
 #| code-fold: true
@@ -364,4 +364,3 @@ m <- m %>% addCircleMarkers(
 ```
 
 ![Turkey Electric Vehicle Charging Stations and Road Density](turkeymap.png)
-
