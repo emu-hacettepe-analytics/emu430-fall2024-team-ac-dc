@@ -256,11 +256,13 @@ p1 <- summary_tbl %>% mutate(Brand = fct_reorder(Brand, Total)) %>% ggplot(aes(x
 print(p1)
 
 ```
-<p style="text-align:center;"><strong>Figure 6:</strong> Total Socket Count by Brand — Top 5 Operators (EMRA, April 2026)</p
+<p style="text-align:center;"><strong>Figure 6:</strong> Total Socket Count by Brand — Top 5 Operators (EMRA, April 2026)</p>
 
 ### 3.3 AC and DC Strategy by Operator
 
-A notable differentiation in charging strategy is observed among the leading operators.Voltrun is the most AC focused operator, with a 90% AC share. This AC-oriented struc ture can be partly explained by the fact that approximately X% of Voltrun’s sockets are private/restricted, indicating a stronger focus on destination based and controlled access charging locations rather than public highway fast charging. In contrast, Trugo, with an 81% DC share, has established a fast-charging network primarily targeting highway and intercity travelers. This DC oriented structure is also consistent with Trugo’s socket portfolio, as approximately X% of its sockets are publicly accessible, supporting its nation wide corridor-based charging strategy. Similarly, eŞarj with 84% DC and Astor with 78% DC also show a strong fast-charging focus. ZES, on the other hand, adopts a approach serving both urban and highway needs, with a 48% DC share.
+A notable differentiation in charging strategy is observed among the leading operators. Voltrun is the most AC-focused operator, with a **90% AC share**. This AC-oriented structure can partly be explained by its stronger focus on destination-based and controlled-access charging locations rather than public highway fast charging.
+
+In contrast, Trugo, with an **81% DC share**, has established a fast-charging network primarily targeting highway and intercity travelers. Similarly, Eşarj with an **84% DC share** and Astor with a **78% DC share** also show a strong fast-charging focus. ZES, on the other hand, adopts a more balanced approach serving both urban and highway charging needs, with a **48% DC share**.
 
 ```{r}
 #| label: fig-socket-ac-dc
@@ -268,12 +270,42 @@ A notable differentiation in charging strategy is observed among the leading ope
 #| code-summary: "Show the code"
 #| warning: false
 #| message: false
-# PLOT 2
-p2 <- df5 %>% count(Brand, `Soket Tipi`) %>% ggplot(aes(x = Brand, y = n, fill = `Soket Tipi`)) + geom_col(position = position_dodge(width = 0.7), width = 0.65) + geom_text(aes(label = comma(n)), position = position_dodge(width = 0.7), vjust = -0.4, fontface = "bold", size = 3.5) + scale_fill_manual(values = c("AC" = AC_COL, "DC" = DC_COL), name = "Socket Type") + scale_y_continuous(labels = comma, expand = expansion(mult = c(0, 0.15))) + labs(title = "AC vs DC Socket Distribution (Top 5 Brands)", subtitle = "Source: EPDK Charging Station Registry, April 2026", x = NULL, y = "Number of Sockets") + theme_minimal(base_size = 13) + theme(plot.title = element_text(face = "bold"), panel.grid.major.x = element_blank()) 
-print(p2)
 
+p2 <- df5 %>% 
+  count(Brand, `Soket Tipi`) %>% 
+  ggplot(aes(x = Brand, y = n, fill = `Soket Tipi`)) + 
+  geom_col(position = position_dodge(width = 0.7), width = 0.65) + 
+  geom_text(
+    aes(label = comma(n)), 
+    position = position_dodge(width = 0.7), 
+    vjust = -0.4, 
+    fontface = "bold", 
+    size = 3.5
+  ) + 
+  scale_fill_manual(
+    values = c("AC" = AC_COL, "DC" = DC_COL), 
+    name = "Socket Type"
+  ) + 
+  scale_y_continuous(
+    labels = comma, 
+    expand = expansion(mult = c(0, 0.15))
+  ) + 
+  labs(
+    title = "AC vs DC Socket Distribution (Top 5 Brands)", 
+    subtitle = "Source: EPDK Charging Station Registry, April 2026", 
+    x = NULL, 
+    y = "Number of Sockets"
+  ) + 
+  theme_minimal(base_size = 13) + 
+  theme(
+    plot.title = element_text(face = "bold"), 
+    panel.grid.major.x = element_blank()
+  )
+
+print(p2)
 ```
-<p style="text-align:center;"><strong>Figure 7:</strong> AC and DC Socket Distribution- Top 5 Brands (EMRA, April 2026)</p
+
+<p style="text-align:center;"><strong>Figure 7:</strong> AC and DC Socket Distribution — Top 5 Brands (EMRA, April 2026)</p>
 
 ```{r}
 #| label: fig-dc-socket-brand
@@ -286,7 +318,7 @@ p3 <- summary_tbl %>% mutate(Brand = fct_reorder(Brand, DC_pct), Strategy = ifel
 print(p3)
 
 ```
-<p style="text-align:center;"><strong>Figure 8:</strong> DC Socket Ratio by Brand- Charging Strategy Indicator (EMRA, April 2026)</p
+<p style="text-align:center;"><strong>Figure 8:</strong> DC Socket Ratio by Brand- Charging Strategy Indicator (EMRA, April 2026)</p>
 
 ### 3.4 Geographical Coverage
 
