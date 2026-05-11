@@ -227,10 +227,11 @@ p7 <- ggplot(city_top20, aes(x = Sockets, y = City)) + geom_col(fill = "#1565C0"
 print(p7)
 
 ```
-<p style="text-align:center;"><strong>Figure 4:</strong>  Socket Density by City — Top 20 Cities (EMRA, April 2026)</p>
+<p style="text-align:center;"><strong>Figure 4:</strong> Socket Density by City — Top 20 Cities (EMRA, April 2026)</p>
 
-Ömer heat map gelecek!!!!
-<p style="text-align:center;"><strong>Figure 5:</strong> Charging Station Density Heat Map Across Türkiye (EMRA, April 2026)</p
+<!-- Ömer heat map gelecek -->
+
+<p style="text-align:center;"><strong>Figure 5:</strong> Charging Station Density Heat Map Across Türkiye (EMRA, April 2026)</p>
 
 ## 3. Competitive Environment
 
