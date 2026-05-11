@@ -32,7 +32,7 @@
     "href": "analysis.html",
     "title": "Analysis",
     "section": "",
-    "text": "This page presents our core analysis and key findings. Here, you will explore interactive maps, data visualizations, and detailed insights derived from our current datasets to understand electric vehicle trends."
+    "text": "This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.\n\n\n\n\n\n\nNoteKey Market Indicators\n\n\n\n\n\n\nIndicator\nValue\nPeriod\n\n\n\n\nTotal Sockets\n41,767\nApril 2026\n\n\nElectric Vehicles\n408,314\nApril 2026\n\n\nMonthly Charging Sessions\n2.62 Mn\nMarch 2026\n\n\nTotal Energy Consumption\n67.5 GWh\nMarch 2026"
   },
   {
     "objectID": "analysis.html#about-this-site",
@@ -61,5 +61,26 @@
     "title": "Data",
     "section": "",
     "text": "Data - meryem\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "analysis.html#türkiye-electric-vehicle-charging-infrastructure",
+    "href": "analysis.html#türkiye-electric-vehicle-charging-infrastructure",
+    "title": "Analysis",
+    "section": "",
+    "text": "This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.\n\n\n\n\n\n\nNoteKey Market Indicators\n\n\n\n\n\n\nIndicator\nValue\nPeriod\n\n\n\n\nTotal Sockets\n41,767\nApril 2026\n\n\nElectric Vehicles\n408,314\nApril 2026\n\n\nMonthly Charging Sessions\n2.62 Mn\nMarch 2026\n\n\nTotal Energy Consumption\n67.5 GWh\nMarch 2026"
+  },
+  {
+    "objectID": "analysis.html#executive-summary",
+    "href": "analysis.html#executive-summary",
+    "title": "Analysis",
+    "section": "1. Executive Summary",
+    "text": "1. Executive Summary\nTürkiye’s electric vehicle charging infrastructure has entered a period of rapid and sustainable expansion. As of 23 April 2026, there are 408,314 registered electric vehicles in the country. This figure increased from only 737 vehicles in 2016, indicating a compound annual growth rate of over 80%. In parallel, the public charging network has expanded significantly and reached 41,767 sockets across 81 provinces as of April 2026.\nThis analysis examines Türkiye’s charging market structure, competitive environment, geographical distribution, and the infrastructure strategies of leading operators. The main findings are summarized below:\n\nThe market remains fragmented, with a low level of concentration. The Herfindahl-Hirschman Index has consistently stayed below the 1,500 threshold, indicating healthy competition among more than 175 licensed operators.\nZES is the leading operator in terms of total socket count, while Trugo stands out in terms of energy volume with 13,526 MWh in March 2026.\nDC fast charging accounts for approximately 43% of all sockets, showing the growing importance of fast-charging infrastructure.\nİstanbul and Ankara together account for approximately 46% of electricity consumption at charging stations, reflecting strong urban concentration.\nCharging infrastructure is especially concentrated in western metropolitan areas and along major intercity highway corridors."
+  },
+  {
+    "objectID": "analysis.html#market-overview",
+    "href": "analysis.html#market-overview",
+    "title": "Analysis",
+    "section": "2. Market Overview",
+    "text": "2. Market Overview\n\n2.1 Growth of the Electric Vehicle Fleet\nTürkiye’s electric vehicle fleet has shown exponential growth over the last decade. Starting from a very small base of 737 vehicles in 2016, the total number increased to 373,733 by the end of 2025 and reached 408,314 as of 23 April 2026. This represents an increase of approximately 35,000 vehicles in only four months.\nHowever, the number of electric vehicles and the number of charging sockets are not directly proportional across provinces. Some cities have high EV ownership and dense charging infrastructure, while others still show infrastructure gaps. Therefore, city level EV density should be analyzed together with socket availability, operator presence, and road traffic intensity.\n\n\nShow the code\nlibrary(dplyr)\nlibrary(tidyverse)\nlibrary(sf)\nlibrary(leaflet)\nlibrary(rnaturalearth)\nlibrary(stringi)\n\ndf &lt;- read.csv(\"NumofEV.csv\", \n               header = TRUE, \n               sep = \";\",\n               encoding = \"UTF-8\")\n\ntr_map &lt;- ne_states(country = \"Turkey\", returnclass = \"sf\")\n\nplot(st_geometry(tr_map))\n\n\n\n\n\n\n\n\n\nShow the code\ndf$City &lt;- stri_trans_general(df$City, \"latin-ascii\")\n\ntr_map$name &lt;- stri_trans_general(tr_map$name, \"latin-ascii\")\n\n\ndf &lt;- df %&gt;%\n  mutate(City = case_when(\n    City == \"Zonguldak\" ~ \"Zinguldak\",\n    City == \"Kahramanmaras\" ~ \"K. Maras\",\n    City == \"Kirikkale\" ~ \"Kinkkale\",\n    TRUE ~ City\n  )) \n\nharita_veri &lt;- left_join(tr_map, df, by = c(\"name\" = \"City\"))\n\nharita_veri &lt;- harita_veri %&gt;%\n  mutate(EVcount_log = log10(EVcount + 1))\n\npal &lt;- colorNumeric(palette = \"YlOrRd\", domain = harita_veri$EVcount_log, na.color = \"transparent\")\n\nleaflet(harita_veri) %&gt;%\n  addProviderTiles(providers$CartoDB.Positron) %&gt;% \n  addPolygons(\n    fillColor = ~pal(EVcount_log),             \n    weight = 1,                                  \n    opacity = 1,\n    color = \"white\",                             \n    fillOpacity = 0.7,\n    highlightOptions = highlightOptions(         \n      weight = 3,\n      color = \"#666\",\n      fillOpacity = 0.9,\n      bringToFront = TRUE),\n    label = ~paste0(name, \": \", EVcount), \n    labelOptions = labelOptions(\n      style = list(\"font-weight\" = \"normal\", padding = \"3px 8px\"),\n      textsize = \"13px\",\n      direction = \"auto\")\n  ) %&gt;%\n  addLegend(pal = pal, \n            values = ~EVcount_log,             \n            opacity = 0.7, \n            title = \"Number of Electric Vehicles\",\n            position = \"bottomright\",\n            labFormat = labelFormat(transform = function(x) round(10^x - 1),\n                                    big.mark = \",\")\n            )"
   }
 ]
