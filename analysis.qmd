@@ -336,4 +336,6 @@ m <- m %>% addCircleMarkers(
   addLayersControl(overlayGroups = c("Roads", "Charging Stations"), options = layersControlOptions(collapsed = FALSE)) %>%
   addControl(legend_html, position = "bottomright")
 ```
+
 ![Turkey Electric Vehicle Charging Stations and Road Density](turkeymap.png)
+
