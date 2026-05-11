@@ -125,6 +125,8 @@ leaflet(harita_veri) %>%
             )
 ```
 
+Ömerin harita kodu gelecekk!!
+
 <p style="text-align:center;"><strong>Figure 1:</strong> Number of Electric Vehicles (TÜİK, April 2026)</p>
 
 The map shows that EV ownership is highly concentrated in western and metropolitan provinces, especially İstanbul, Ankara, İzmir, Antalya, Bursa, and Kocaeli. This pattern suggests that charging demand is closely related to urban population, income levels, and regional mobility patterns.
@@ -141,6 +143,72 @@ The map shows that EV ownership is highly concentrated in western and metropolit
 | Antalya | 20,596 | 2,042 |
 | Bursa | 19,676 | 1,900 |
 | Kocaeli | 10,593 | 1,094 |
+
+### 2.2 National Socket Inventory
+
+As of 23 April 2026, the national charging network consists of **41,767 sockets** installed at charging points operated under EMRA licenses. Of these, **23,900 are AC sockets**, corresponding to **57%**, while **18,038 are DC sockets**, corresponding to **43%**. The network increased by **41%** in one year, rising from **29,496 sockets in April 2025**.
+
+```{r}
+#| label: Overall AC/DC Socket Distribution
+#| code-fold: true
+#| warning: false
+#| message: false
+
+# ============================================================
+# EMU-430 Project — EV Charging Infrastructure, Turkey
+# Script 01: Brand & City Analysis + ggplot2 Visualizations
+# Author  : Azra Azizoğlu
+# ============================================================
+
+library(readxl) 
+library(dplyr) 
+library(tidyr) 
+library(stringr) 
+library(ggplot2) 
+library(forcats) 
+library(scales)
+
+# ── COLOUR PALETTE ───────────────────────────────────────────
+AC_COL <- "#4A90D9" 
+DC_COL <- "#E84855" 
+BRAND_COLS <- c("ZES" = "#E74C3C", "Trugo" = "#3498DB", "Voltrun" = "#2ECC71", "eŞarj" = "#F39C12", "Astor" = "#9B59B6")
+
+# ── 1. LOAD & CLEAN ──────────────────────────────────────────
+df_raw <- read_excel("sarj_istasyonlari_birlesik.xlsx")
+
+df <- df_raw %>% 
+  distinct(`Soket No`, .keep_all = TRUE) %>% 
+  mutate(City = str_extract(Adres, "[^/]+$") %>% 
+           str_trim() %>% 
+           str_to_upper()) %>% 
+  mutate(Brand = case_when( 
+    Marka == "zes" ~ "ZES", 
+    Marka == "Trugo" ~ "Trugo", 
+    Marka == "VOLTRUN" ~ "Voltrun", 
+    Marka == "eşarj" ~ "eŞarj", 
+    Marka == "ASTOR" ~ "Astor", 
+    TRUE ~ Marka ))
+
+TOP5 <- c("ZES", "Trugo", "Voltrun", "eŞarj", "Astor") 
+df5 <- df %>% 
+  filter(Brand %in% TOP5) %>% 
+  mutate(Brand = factor(Brand, levels = TOP5))
+
+# ── 2. SUMMARY TABLE ─────────────────────────────────────────
+summary_tbl <- df5 %>% 
+  group_by(Brand) %>% 
+  summarise( 
+    Total = n(), 
+    AC = sum(`Soket Tipi` == "AC"), 
+    DC = sum(`Soket Tipi` == "DC"), 
+    DC_pct = round(DC / Total * 100, 1), 
+    Cities = n_distinct(City, na.rm = TRUE), 
+    .groups = "drop" )
+# PLOT 6
+overall <- df %>% count(`Soket Tipi`) %>% mutate(pct = n / sum(n) * 100, label = paste0(`Soket Tipi`, "\n", round(pct, 1), "%\n(", comma(n), ")")) 
+p6 <- ggplot(overall, aes(x = "", y = n, fill = `Soket Tipi`)) + geom_col(width = 1, colour ="white", linewidth = 1.5) + geom_text(aes(label = label), position = position_stack(vjust = 0.5), colour = "white", fontface = "bold", size = 5) + coord_polar("y") + scale_fill_manual(values = c("AC" = AC_COL, "DC" = DC_COL)) + labs(title = "Overall AC / DC Socket Distribution in Turkey", subtitle = paste0("Total: ", comma(sum(overall$n)), " sockets | Source: EPDK, April 2026"), fill = "Socket Type") + theme_void(base_size = 13) + theme(plot.title = element_text(face = "bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) 
+print(p6)
+```
 
 
 # 4. Route and Spatial Analysis
