@@ -209,7 +209,27 @@ overall <- df %>% count(`Soket Tipi`) %>% mutate(pct = n / sum(n) * 100, label =
 p6 <- ggplot(overall, aes(x = "", y = n, fill = `Soket Tipi`)) + geom_col(width = 1, colour ="white", linewidth = 1.5) + geom_text(aes(label = label), position = position_stack(vjust = 0.5), colour = "white", fontface = "bold", size = 5) + coord_polar("y") + scale_fill_manual(values = c("AC" = AC_COL, "DC" = DC_COL)) + labs(title = "Overall AC / DC Socket Distribution in Turkey", subtitle = paste0("Total: ", comma(sum(overall$n)), " sockets | Source: EPDK, April 2026"), fill = "Socket Type") + theme_void(base_size = 13) + theme(plot.title = element_text(face = "bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) 
 print(p6)
 ```
+<p style="text-align:center;"><strong>Figure 3:</strong> Overall AC/DC Socket Distribution in Türkiye (EMRA, April 2026)</p>
 
+Although AC sockets continue to form the majority with a share of **56%**, the share of DC fast-charging infrastructure is remarkably high compared to many European markets. This reflects Türkiye’s long intercity travel distances and the strategic positioning of highway fast-charging networks by major operators.
+
+### 2.3 Geographical Concentration
+
+İstanbul holds a dominant position in the national socket structure with **13,484 sockets**, representing **32.3%** of the total. It is followed by Ankara with **5,540 sockets**, corresponding to **13.3%**. The top five cities — İstanbul, Ankara, Antalya, Bursa, and İzmir — account for approximately **58%** of all installed sockets. After the top five, socket density decreases rapidly, indicating ongoing infrastructure gaps in smaller cities.
+
+```{r}
+#| label: fig-city-socket-density
+#| code-fold: true
+#| code-summary: "Show the code"
+#| warning: false
+#| message: false
+# PLOT 7
+city_top20 <- df %>% filter(!is.na(City)) %>% count(City, name = "Sockets") %>% slice_max(Sockets, n = 20) %>% mutate(City = fct_reorder(City, Sockets)) 
+p7 <- ggplot(city_top20, aes(x = Sockets, y = City)) + geom_col(fill = "#1565C0", width = 0.7) + geom_text(aes(label = comma(Sockets)), hjust = -0.15, size = 3.5, fontface = "bold") + scale_x_continuous(labels = comma, expand = expansion(mult = c(0, 0.15))) + labs(title = "Socket Density by City — Top 20", subtitle = "All brands and socket types | Source: EPDK, April 2026", x = "Number of Sockets", y = NULL) + theme_minimal(base_size = 12) + theme(plot.title = element_text(face = "bold"), panel.grid.major.y = element_blank()) 
+print(p7)
+
+```
+<p style="text-align:center;"><strong>Figure 4:</strong>  Socket Density by City — Top 20 Cities (EMRA, April 2026)</p>
 
 # 4. Route and Spatial Analysis
 
