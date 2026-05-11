@@ -335,10 +335,11 @@ p5 <- summary_tbl %>% mutate(Brand = fct_reorder(Brand, Cities)) %>% ggplot(aes(
 print(p5)
 
 ```
-<p style="text-align:center;"><strong>Figure 9:</strong> Geographical Coverage- Number of Cities per Brand Among the Top 5 Operators (EMRA, April 2026)</p
+<p style="text-align:center;"><strong>Figure 9:</strong> Geographical Coverage- Number of Cities per Brand Among the Top 5 Operators (EMRA, April 2026)</p>
 
-### 3.5 Geographical 
-All five operators concentrate their investments heavily in İstanbul and Ankara. ZES has the largest presence in İstanbul with 1,162 sockets. Astor, reflecting its origin and customer base, is distinctly Ankara centered, with 249 sockets in Ankara compared to 122 sockets in İstanbul. Voltrun shows notable coverage in Samsun and Trabzon, along the Black Sea corridor, differentiating its footprint from its competitors
+### 3.5 Geographical Coverage and City-Level Distribution
+
+All five operators concentrate their investments heavily in İstanbul and Ankara. ZES has the largest presence in İstanbul with **1,162 sockets**. Astor, reflecting its origin and customer base, is distinctly Ankara-centered, with **249 sockets in Ankara** compared to **122 sockets in İstanbul**. Voltrun shows notable coverage in Samsun and Trabzon along the Black Sea corridor, differentiating its footprint from its competitors.
 
 ```{r}
 #| label: fig-socket-dist
@@ -346,13 +347,36 @@ All five operators concentrate their investments heavily in İstanbul and Ankara
 #| code-summary: "Show the code"
 #| warning: false
 #| message: false
-# PLOT 4
-city_data <- df5 %>% count(Brand, City) %>% group_by(Brand) %>% slice_max(n, n = 8) %>% mutate(City = fct_reorder(City, n)) 
-p4 <- ggplot(city_data, aes(x = n, y = City, fill = Brand)) + geom_col(show.legend = FALSE) + geom_text(aes(label = n), hjust = -0.2, size = 3) + scale_fill_manual(values = BRAND_COLS) + scale_x_continuous(expand = expansion(mult = c(0, 0.2))) + facet_wrap(~Brand, scales = "free", nrow = 1) + labs(title = "Top 5 Brands — Socket Distribution by City (Top 8 Cities Each)", subtitle = "Source: EPDK Charging Station Registry, April 2026", x = "Number of Sockets", y = NULL) + theme_minimal(base_size = 11) + theme(plot.title = element_text(face = "bold"), strip.text = element_text(face = "bold", size = 11), panel.grid.major.y = element_blank()) 
+
+city_data <- df5 %>% 
+  count(Brand, City) %>% 
+  group_by(Brand) %>% 
+  slice_max(n, n = 8) %>% 
+  mutate(City = fct_reorder(City, n))
+
+p4 <- ggplot(city_data, aes(x = n, y = City, fill = Brand)) + 
+  geom_col(show.legend = FALSE) + 
+  geom_text(aes(label = n), hjust = -0.2, size = 3) + 
+  scale_fill_manual(values = BRAND_COLS) + 
+  scale_x_continuous(expand = expansion(mult = c(0, 0.2))) + 
+  facet_wrap(~Brand, scales = "free", nrow = 1) + 
+  labs(
+    title = "Top 5 Brands — Socket Distribution by City (Top 8 Cities Each)", 
+    subtitle = "Source: EPDK Charging Station Registry, April 2026", 
+    x = "Number of Sockets", 
+    y = NULL
+  ) + 
+  theme_minimal(base_size = 11) + 
+  theme(
+    plot.title = element_text(face = "bold"), 
+    strip.text = element_text(face = "bold", size = 11), 
+    panel.grid.major.y = element_blank()
+  )
+
 print(p4)
 ```
-<p style="text-align:center;"><strong>Figure 10:</strong> Socket Distribution by City- Top 8 Cities for Each of the Top 5 Brands
-(EMRA, April 2026)</p
+
+<p style="text-align:center;"><strong>Figure 10:</strong> Socket Distribution by City — Top 8 Cities for Each of the Top 5 Brands (EMRA, April 2026)</p>
 
 
 ## 4. Route and Spatial Analysis
@@ -604,7 +628,7 @@ m <- m %>% addCircleMarkers(
 
 ![Turkey Electric Vehicle Charging Stations and Road Density](turkeymap.png)
 <p style="text-align:center;"><strong>Figure 11:</strong> Highway Traffic Density and Charging Station Distribution Across Türkiye
-(EMRA, KGM, April 2026)</p
+(EMRA, KGM, April 2026)</p>
 
 ```{r}
 #| label: brand-analysis
@@ -696,7 +720,4 @@ city_top20 <- df %>% filter(!is.na(City)) %>% count(City, name = "Sockets") %>% 
 p7 <- ggplot(city_top20, aes(x = Sockets, y = City)) + geom_col(fill = "#1565C0", width = 0.7) + geom_text(aes(label = comma(Sockets)), hjust = -0.15, size = 3.5, fontface = "bold") + scale_x_continuous(labels = comma, expand = expansion(mult = c(0, 0.15))) + labs(title = "Socket Density by City — Top 20", subtitle = "All brands and socket types | Source: EPDK, April 2026", x = "Number of Sockets", y = NULL) + theme_minimal(base_size = 12) + theme(plot.title = element_text(face = "bold"), panel.grid.major.y = element_blank()) 
 print(p7)
 ```
-<<<<<<< HEAD
-=======
->>>>>>> Stashed changes
->>>>>>> b60b074848b3cfde5fcb31e2c4761ae8bfd5b383
+
