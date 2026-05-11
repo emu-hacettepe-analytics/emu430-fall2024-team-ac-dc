@@ -2,6 +2,8 @@
 title: "Analysis"
 format: 
   html:
+    embed-resources: false
+    self-contained: false
     code-fold: true
     theme: lux
     code-summary: "Show the code"
@@ -101,6 +103,7 @@ In this section, we analyze the spatial relationship between existing charging s
 #| code-fold: true
 #| warning: false
 #| message: false
+#| eval: false
 
 # ============================================================
 # 0. PACKAGES & INITIAL CONFIG
@@ -290,6 +293,7 @@ routes_density_sf <- routes_by_city %>%
       density_class == "100.000+" ~ 2.8, TRUE ~ 1.5
     )
   )
+routes_density_sf <- st_simplify(routes_density_sf, preserveTopology = TRUE, dTolerance = 0.001)
 
 route_palette <- c("0 - 10.000"="#E6FF05", "10.000 - 25.000"="#F5CC27", "25.000 - 50.000"="#FF9B05", "50.000 - 100.000"="#FF0000", "100.000+"="#A30500")
 
@@ -331,6 +335,5 @@ m <- m %>% addCircleMarkers(
 ) %>%
   addLayersControl(overlayGroups = c("Roads", "Charging Stations"), options = layersControlOptions(collapsed = FALSE)) %>%
   addControl(legend_html, position = "bottomright")
-m
 ```
-
+![Turkey Electric Vehicle Charging Stations and Road Density](turkeymap.png)
