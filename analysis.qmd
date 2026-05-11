@@ -14,7 +14,15 @@ execute:
 
 ## Türkiye Electric Vehicle Charging Infrastructure
 
+<<<<<<< HEAD
 This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
+=======
+<<<<<<< Updated upstream
+Öznur This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
+=======
+This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
+>>>>>>> Stashed changes
+>>>>>>> b60b074848b3cfde5fcb31e2c4761ae8bfd5b383
 
 ::: {.callout-note title="Key Market Indicators"}
 | Indicator                 |    Value | Period     |
@@ -389,6 +397,11 @@ m <- m %>% addCircleMarkers(
 ```
 
 ![Turkey Electric Vehicle Charging Stations and Road Density](turkeymap.png)
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> b60b074848b3cfde5fcb31e2c4761ae8bfd5b383
 
 ```{r}
 #| label: brand-analysis
@@ -480,3 +493,7 @@ city_top20 <- df %>% filter(!is.na(City)) %>% count(City, name = "Sockets") %>% 
 p7 <- ggplot(city_top20, aes(x = Sockets, y = City)) + geom_col(fill = "#1565C0", width = 0.7) + geom_text(aes(label = comma(Sockets)), hjust = -0.15, size = 3.5, fontface = "bold") + scale_x_continuous(labels = comma, expand = expansion(mult = c(0, 0.15))) + labs(title = "Socket Density by City — Top 20", subtitle = "All brands and socket types | Source: EPDK, April 2026", x = "Number of Sockets", y = NULL) + theme_minimal(base_size = 12) + theme(plot.title = element_text(face = "bold"), panel.grid.major.y = element_blank()) 
 print(p7)
 ```
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
+>>>>>>> b60b074848b3cfde5fcb31e2c4761ae8bfd5b383
