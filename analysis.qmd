@@ -630,3 +630,44 @@ m <- m %>% addCircleMarkers(
 <p style="text-align:center;"><strong>Figure 11:</strong> Highway Traffic Density and Charging Station Distribution Across Türkiye
 (EMRA, KGM, April 2026)</p>
 
+## 5. Charging Service Performance
+
+### 5.1 Monthly Charging Statistics
+
+In March 2026, a total of **2,621,720 charging sessions** were carried out and **67,547 MWh** of electricity was consumed. These values represent the highest monthly figures in the dataset. The average energy per session was **25.76 kWh**, while the average session duration was **1.16 hours**.
+
+Although DC chargers account for only **43%** of sockets, they delivered **80.5%** of the total energy consumed. Average consumption per session was **28.55 kWh** for DC and **18.39 kWh** for AC.
+
+<p style="text-align:center;"><strong>Table 2:</strong> Charging Service Data (EMRA, March 2026)</p>
+
+| Metric | Total | AC Share | DC Share |
+|---|---:|---:|---:|
+| Total Energy (kWh) | 67,547,488 | 19.6% | 80.4% |
+| Total Sessions | 2,621,720 | 27.4% | 72.6% |
+| Total Duration (minutes) | 182,472,600 | 59.6% | 40.4% |
+| Energy per Session (kWh) | 25.76 | 18.39 | 28.55 |
+| Duration per Session (minutes) | 69.6 | 151.5 | 38.7 |
+
+<p style="text-align:center;"><em>Source: EMRA Charging Automation System</em></p>
+
+### 5.2 Operator Energy Volume
+
+Trugo is the leader among all operators with **13,526 MWh** of energy supplied in March 2026, corresponding to a **20.0% market share**. However, it ranks second in terms of socket count. This indicates significantly higher utilization per socket compared to its competitors and validates its highway DC strategy.
+
+ZES ranks second with **9,908 MWh**, corresponding to **14.7%**, followed by Eşarj with **5,036 MWh**, corresponding to **7.5%**, and Astor with **3,515 MWh**, corresponding to **5.2%**. Five operators — Trugo, ZES, Eşarj, Astor, and Voltrun — account for **51%** of total electricity consumption. March 2026 data has been taken as the basis.
+
+<p style="text-align:center;">
+<img src="Screenshot_1.png" width="750">
+</p>
+
+<p style="text-align:center;"><strong>Figure 12:</strong> Total Electricity Consumption by Brand (EMRA, March 2026)</p>
+
+## 6. Conclusion
+
+The top five operators in Türkiye’s EV charging market demonstrate clearly differentiated strategic positions. When socket count, DC ratio, geographical coverage, and energy volume data are evaluated together, it can be seen that each operator has adopted a distinct competitive model.
+
+### ZES — Balanced Urban and Highway Model
+
+ZES is the market leader in terms of socket count with **4,859 sockets** and is the only major operator that simultaneously serves both the urban and highway segments with a **48% DC ratio**. Its presence of **1,162 sockets in İstanbul** represents the highest city-level density among all operators.
+
+It also ranks second in energy volume with **9,908 MWh** in March 2026, indicating that its socket leadership is supported by a strong utilization rate. ZES’s balanced model reduces the risk of dependency on a single segment while providing access to a broad customer base.
