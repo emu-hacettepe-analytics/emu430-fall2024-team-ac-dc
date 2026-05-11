@@ -117,7 +117,7 @@ leaflet(harita_veri) %>%
 ```
 <p style="text-align:center;"><strong>Figure 1:</strong> Number of Electric Vehicles (TÜİK, April 2026)</p>
 
-The map shows that EV ownership is highly concentrated in western and metropolitan provinces, especially İstanbul, Ankara, İzmir, Antalya, Bursa, and Kocaeli. This pattern suggests that charging demand is closely related to urban population, income levels, and regional mobility patterns.
+The map shows that EV ownership is highly concentrated in western and metropolitan provinces, especially İstanbul, Ankara, İzmir, Antalya, Bursa, and Kocaeli. This pattern suggests that charging demand is closely related to urban population, income levels, and regional mobility patterns..
 
 <br>
 
