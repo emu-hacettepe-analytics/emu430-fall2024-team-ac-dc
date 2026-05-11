@@ -125,31 +125,23 @@ leaflet(harita_veri) %>%
             )
 ```
 
-\<p style="text-align:center;"\>\<strong\>Figure 1:\</strong\> Number of Electric Vehicles (TÜİK, April 2026)\</p\>
+<p style="text-align:center;"><strong>Figure 1:</strong> Number of Electric Vehicles (TÜİK, April 2026)</p>
 
 The map shows that EV ownership is highly concentrated in western and metropolitan provinces, especially İstanbul, Ankara, İzmir, Antalya, Bursa, and Kocaeli. This pattern suggests that charging demand is closely related to urban population, income levels, and regional mobility patterns.
 
-\<br\>
+<br>
 
-\<p style="text-align:center;"\>\<strong\>Table 1:\</strong\> Top Provinces by Number of Electric Vehicles and Socket Counts\</p\>
+<p style="text-align:center;"><strong>Table 1:</strong> Top Provinces by Number of Electric Vehicles and Socket Counts</p>
 
-\| Province \| EV Count \| Socket Count \|
+| Province | EV Count | Socket Count |
+|---|---:|---:|
+| İstanbul | 152,046 | 13,484 |
+| Ankara | 56,785 | 5,540 |
+| İzmir | 31,909 | 1,790 |
+| Antalya | 20,596 | 2,042 |
+| Bursa | 19,676 | 1,900 |
+| Kocaeli | 10,593 | 1,094 |
 
-\|---\|---:\|---:\|
-
-\| İstanbul \| 152,046 \| 13,484 \|
-
-\| Ankara \| 56,785 \| 5,540 \|
-
-\| İzmir \| 31,909 \| 1,790 \|
-
-\| Antalya \| 20,596 \| 2,042 \|
-
-\| Bursa \| 19,676 \| 1,900 \|
-
-\| Kocaeli \| 10,593 \| 1,094 \|
-
-\# 4. Route and Spatial Analysis
 
 # 4. Route and Spatial Analysis
 
