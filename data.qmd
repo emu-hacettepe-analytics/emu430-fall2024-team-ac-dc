@@ -6,12 +6,14 @@ title: "Data"
 
 ## Data Sources
 
+...
+
 This study combines multiple data sources to analyze Türkiye’s electric vehicle charging infrastructure from both a market and spatial perspective. The main datasets used in the analysis are listed below:
 
-- **EMRA Charging Station Registry, April 2026**
-- **EMRA Monthly Charging Market Statistics, March 2026**
-- **TÜİK Electric Vehicle Statistics, March 2026**
-- **KGM General Directorate of Highways Traffic Density Data**
+-   **EMRA Charging Station Registry, April 2026**
+-   **EMRA Monthly Charging Market Statistics, March 2026**
+-   **TÜİK Electric Vehicle Statistics, March 2026**
+-   **KGM General Directorate of Highways Traffic Density Data**
 
 ## Data Preparation and Cleaning
 
@@ -21,128 +23,22 @@ During the preparation process, only the variables required for the analysis wer
 
 The final cleaned dataset was exported both as Excel and CSV files for further use in the analysis.
 
-```{r}
-#| label: data-cleaning-emra-stations
-#| eval: false
-#| code-fold: true
-#| code-summary: "Show the code"
-#| warning: false
-#| message: false
+The charging station registry was obtained from EMRA as 31 separate Excel files. Since the raw files followed the same general structure but were stored separately, they were first imported into R and combined into a single socket-level dataset. During this process, only the variables required for the analysis were retained: station number, service type, brand, address, socket number, socket type, and source file. The final structure of the combined charging station dataset is as follows:
 
-# Gerekli paketler
-install.packages(c("readxl", "dplyr", "purrr", "tidyr", "stringr", "writexl"))
+-   **Station Number:** unique identifier of each charging station,
+-   **Service Type:** whether the station is publicly accessible or private/restricted,
+-   **Brand:** charging network operator or brand name,
+-   **Address:** textual location information of the station,
+-   **Socket Number:** unique socket-level identifier,
+-   **Socket Type:** AC or DC socket classification,
+-   **Source File:** the original Excel file from which the record was imported.
 
-library(readxl)
-library(dplyr)
-library(purrr)
-library(tidyr)
-library(stringr)
-library(writexl)
+Several preprocessing steps were applied before the analysis. First, column names were standardized by removing extra spaces and line breaks. Then, repeated header rows inside the raw Excel files were removed. Since the raw registry structure included station-level information only once for multiple socket rows, missing station-level fields were filled downward so that each socket record contained the corresponding station number, brand, service type, and address. Finally, only valid socket records were retained by filtering rows whose socket number followed the official socket identifier format. As a result, the raw station registry files were transformed into a consistent socket-level dataset suitable for operator comparison, AC/DC analysis, and geographical mapping.
 
-# Klasör yolu
-base_path <- "C:/Users/PC/Desktop/EMU430 Proje"
+For spatial analysis, each unique station address was geocoded to obtain latitude and longitude coordinates. In total, coordinates were generated for approximately **13,668 unique addresses**. These coordinates were then matched back to the socket-level dataset so that each socket record could be represented geographically. This allowed the charging infrastructure to be visualized not only by station location but also by socket type, service type, and operator.
 
-# Dosya listesi
-file_list <- file.path(base_path, paste0("sarjIstasyonlari (", 5:35, ").xls"))
+The road network and traffic density analysis was based on **KGM traffic density data**. The original KGM road traffic information was first converted from PDF format into Excel format. From this dataset, state roads and relevant road segments were selected using variables such as region number, province, KGM road number (**KKNO**), segment number, road length, city information, and automobile annual average daily traffic (**YOGT, vehicles/day**).
 
-# Tek dosyayı okuyup temizleyen fonksiyon
-read_and_clean <- function(file_path) {
-  
-  cat("Okunuyor:", file_path, "\n")
-  
-  df <- read_excel(file_path, col_names = TRUE)
-  
-  # Kolon isimlerini temizle
-  names(df) <- names(df) %>%
-    str_squish() %>%
-    str_replace_all("\\n", " ")
-  
-  # Gerekli kolonlar bu dosya yapısında şöyle:
-  # Soket Bilgileri = Soket No
-  # ...11 = Soket Tipi
-  needed_cols <- c("İstasyon No", "Hizmet Şekli", "Marka", "Adres", "Soket Bilgileri", "...11")
-  
-  missing_cols <- setdiff(needed_cols, names(df))
-  if (length(missing_cols) > 0) {
-    stop(
-      paste0(
-        "Bu dosyada şu kolonlar bulunamadı: ",
-        paste(missing_cols, collapse = ", "),
-        "\nDosya: ", file_path,
-        "\nMevcut kolonlar:\n",
-        paste(names(df), collapse = " | ")
-      )
-    )
-  }
-  
-  df_clean <- df %>%
-    select(
-      `İstasyon No`,
-      `Hizmet Şekli`,
-      Marka,
-      Adres,
-      `Soket Bilgileri`,
-      ...11
-    ) %>%
-    rename(
-      `Soket No` = `Soket Bilgileri`,
-      `Soket Tipi` = ...11
-    ) %>%
-    
-    # Karakter kolonlarda boşluk temizliği
-    mutate(across(everything(), ~ if (is.character(.x)) str_squish(.x) else .x)) %>%
-    
-    # İstasyon bilgilerini aşağı doldur
-    fill(`İstasyon No`, `Hizmet Şekli`, Marka, Adres, .direction = "down") %>%
-    
-    # Sadece gerçek soket satırlarını bırak
-    filter(
-      !is.na(`Soket No`),
-      `Soket No` != "",
-      `Soket No` != "Soket No",
-      str_detect(`Soket No`, "^SKT/")
-    ) %>%
-    
-    # Header tekrarlarını temizle
-    filter(
-      is.na(`Soket Tipi`) | `Soket Tipi` != "Soket Tipi"
-    ) %>%
-    
-    # Kaynak dosya bilgisi
-    mutate(kaynak_dosya = basename(file_path)) %>%
-    
-    select(
-      `İstasyon No`,
-      `Hizmet Şekli`,
-      Marka,
-      Adres,
-      `Soket No`,
-      `Soket Tipi`,
-      kaynak_dosya
-    )
-  
-  return(df_clean)
-}
+In parallel, road geometry data were obtained as spatial files and processed to extract road segment geometries such as **LineString** and **MultiLineString** features. These geometries were then matched with traffic density values using road identifiers such as KKNO, province, and segment number. This step made it possible to visualize traffic intensity directly on the road network.
 
-# Tüm dosyaları birleştir
-final_data <- map_dfr(file_list, read_and_clean)
-
-# Kontrol
-print(dim(final_data))
-print(head(final_data, 20))
-
-# Excel olarak kaydet
-write_xlsx(final_data, file.path(base_path, "sarj_istasyonlari_birlesik.xlsx"))
-
-# CSV olarak kaydet
-write.csv(
-  final_data,
-  file.path(base_path, "sarj_istasyonlari_birlesik.csv"),
-  row.names = FALSE,
-  fileEncoding = "UTF-8"
-)
-
-cat("Bitti.\n")
-cat("Excel dosyası:", file.path(base_path, "sarj_istasyonlari_birlesik.xlsx"), "\n")
-cat("CSV dosyası:", file.path(base_path, "sarj_istasyonlari_birlesik.csv"), "\n")
-```
+The **TÜİK electric vehicle dataset** was also used to represent EV ownership by province. EV counts were used to compare demand-side concentration with charging infrastructure supply. By combining EV ownership, socket distribution, geocoded charging station locations, and road traffic density, the final dataset enabled a **multi-layered spatial analysis** of Türkiye’s EV charging infrastructure.

@@ -13,16 +13,15 @@ This is our project webpage.
 </div>
 
 Please stay tuned to follow our project activities.
-
 # Team Members
 
 <div class="d-flex flex-column gap-2" style="margin-bottom: 30px; max-width: 350px;">
-  <span class="btn btn-outline-primary text-start">1. Azra AZİZOĞLU</span>
-  <span class="btn btn-outline-primary text-start">2. Ceren DÖLEK</span>
-  <span class="btn btn-outline-primary text-start">3. İlayda GENÇTAV</span>
-  <span class="btn btn-outline-primary text-start">4. Meryem ŞİMAYLİ</span>
-  <span class="btn btn-outline-primary text-start">5. Ömer Faruk YÜCEL</span>
-  <span class="btn btn-outline-primary text-start">6. Öznur MEYDAN</span>
+  <a href="https://azrazizoglu.github.io/emu430-/" class="btn btn-outline-primary text-start">1. Azra AZİZOĞLU</a>
+  <a href="https://emu-hacettepe-analytics.github.io/emu430-spring2026-cerendolek/" class="btn btn-outline-primary text-start">2. Ceren DÖLEK</a>
+  <a href="ilayda.html" class="btn btn-outline-primary text-start">3. İlayda GENÇTAV</a>
+  <a href="https://emu-hacettepe-analytics.github.io/emu430-spring2026-meryemsimayli/" class="btn btn-outline-primary text-start">4. Meryem ŞİMAYLİ</a>
+  <a href="https://emu-hacettepe-analytics.github.io/emu430-spring2026-omeryucelll/" class="btn btn-outline-primary text-start">5. Ömer Faruk YÜCEL</a>
+  <a href="https://emu-hacettepe-analytics.github.io/emu430-spring2026-OznurMeydan/" class="btn btn-outline-primary text-start">6. Öznur MEYDAN</a>
 </div>
 
 # Project Topic
