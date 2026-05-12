@@ -3,3 +3,146 @@ title: "Data"
 ---
 
 [Data - meryem](meryem_project_data.RData)
+
+## Data Sources
+
+This study combines multiple data sources to analyze Türkiye’s electric vehicle charging infrastructure from both a market and spatial perspective. The main datasets used in the analysis are listed below:
+
+- **EMRA Charging Station Registry, April 2026**
+- **EMRA Monthly Charging Market Statistics, March 2026**
+- **TÜİK Electric Vehicle Statistics, March 2026**
+- **KGM General Directorate of Highways Traffic Density Data**
+
+## Data Preparation and Cleaning
+
+The analysis is based on multiple datasets that were cleaned, standardized, and combined before visualization and interpretation. The core station-level dataset was obtained from the EMRA Charging Station Registry. Since the raw registry files were provided as separate Excel files, they were first imported into R and then merged into a single socket-level dataset.
+
+During the preparation process, only the variables required for the analysis were retained: station number, service type, brand, address, socket number, socket type, and source file. Column names were standardized, repeated header rows were removed, and missing station-level information was filled downward so that each socket row contained the corresponding station information.
+
+The final cleaned dataset was exported both as Excel and CSV files for further use in the analysis.
+
+```{r}
+#| label: data-cleaning-emra-stations
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| warning: false
+#| message: false
+
+# Gerekli paketler
+install.packages(c("readxl", "dplyr", "purrr", "tidyr", "stringr", "writexl"))
+
+library(readxl)
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(stringr)
+library(writexl)
+
+# Klasör yolu
+base_path <- "C:/Users/PC/Desktop/EMU430 Proje"
+
+# Dosya listesi
+file_list <- file.path(base_path, paste0("sarjIstasyonlari (", 5:35, ").xls"))
+
+# Tek dosyayı okuyup temizleyen fonksiyon
+read_and_clean <- function(file_path) {
+  
+  cat("Okunuyor:", file_path, "\n")
+  
+  df <- read_excel(file_path, col_names = TRUE)
+  
+  # Kolon isimlerini temizle
+  names(df) <- names(df) %>%
+    str_squish() %>%
+    str_replace_all("\\n", " ")
+  
+  # Gerekli kolonlar bu dosya yapısında şöyle:
+  # Soket Bilgileri = Soket No
+  # ...11 = Soket Tipi
+  needed_cols <- c("İstasyon No", "Hizmet Şekli", "Marka", "Adres", "Soket Bilgileri", "...11")
+  
+  missing_cols <- setdiff(needed_cols, names(df))
+  if (length(missing_cols) > 0) {
+    stop(
+      paste0(
+        "Bu dosyada şu kolonlar bulunamadı: ",
+        paste(missing_cols, collapse = ", "),
+        "\nDosya: ", file_path,
+        "\nMevcut kolonlar:\n",
+        paste(names(df), collapse = " | ")
+      )
+    )
+  }
+  
+  df_clean <- df %>%
+    select(
+      `İstasyon No`,
+      `Hizmet Şekli`,
+      Marka,
+      Adres,
+      `Soket Bilgileri`,
+      ...11
+    ) %>%
+    rename(
+      `Soket No` = `Soket Bilgileri`,
+      `Soket Tipi` = ...11
+    ) %>%
+    
+    # Karakter kolonlarda boşluk temizliği
+    mutate(across(everything(), ~ if (is.character(.x)) str_squish(.x) else .x)) %>%
+    
+    # İstasyon bilgilerini aşağı doldur
+    fill(`İstasyon No`, `Hizmet Şekli`, Marka, Adres, .direction = "down") %>%
+    
+    # Sadece gerçek soket satırlarını bırak
+    filter(
+      !is.na(`Soket No`),
+      `Soket No` != "",
+      `Soket No` != "Soket No",
+      str_detect(`Soket No`, "^SKT/")
+    ) %>%
+    
+    # Header tekrarlarını temizle
+    filter(
+      is.na(`Soket Tipi`) | `Soket Tipi` != "Soket Tipi"
+    ) %>%
+    
+    # Kaynak dosya bilgisi
+    mutate(kaynak_dosya = basename(file_path)) %>%
+    
+    select(
+      `İstasyon No`,
+      `Hizmet Şekli`,
+      Marka,
+      Adres,
+      `Soket No`,
+      `Soket Tipi`,
+      kaynak_dosya
+    )
+  
+  return(df_clean)
+}
+
+# Tüm dosyaları birleştir
+final_data <- map_dfr(file_list, read_and_clean)
+
+# Kontrol
+print(dim(final_data))
+print(head(final_data, 20))
+
+# Excel olarak kaydet
+write_xlsx(final_data, file.path(base_path, "sarj_istasyonlari_birlesik.xlsx"))
+
+# CSV olarak kaydet
+write.csv(
+  final_data,
+  file.path(base_path, "sarj_istasyonlari_birlesik.csv"),
+  row.names = FALSE,
+  fileEncoding = "UTF-8"
+)
+
+cat("Bitti.\n")
+cat("Excel dosyası:", file.path(base_path, "sarj_istasyonlari_birlesik.xlsx"), "\n")
+cat("CSV dosyası:", file.path(base_path, "sarj_istasyonlari_birlesik.csv"), "\n")
+```
