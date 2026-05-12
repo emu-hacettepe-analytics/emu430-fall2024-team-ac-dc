@@ -16,11 +16,6 @@ execute:
 
 
 This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
-=======
-<<<<<<< Updated upstream
-This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
-=======
-This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
 
 ::: {.callout-note title="Key Market Indicators"}
 | Indicator                 |    Value | Period     |
@@ -666,8 +661,777 @@ ZES ranks second with **9,908 MWh**, corresponding to **14.7%**, followed by Eş
 
 The top five operators in Türkiye’s EV charging market demonstrate clearly differentiated strategic positions. When socket count, DC ratio, geographical coverage, and energy volume data are evaluated together, it can be seen that each operator has adopted a distinct competitive model.
 
-### ZES — Balanced Urban and Highway Model
+### ZES  (Balanced Urban and Highway Model)
 
 ZES is the market leader in terms of socket count with **4,859 sockets** and is the only major operator that simultaneously serves both the urban and highway segments with a **48% DC ratio**. Its presence of **1,162 sockets in İstanbul** represents the highest city-level density among all operators.
 
 It also ranks second in energy volume with **9,908 MWh** in March 2026, indicating that its socket leadership is supported by a strong utilization rate. ZES’s balanced model reduces the risk of dependency on a single segment while providing access to a broad customer base.
+
+```{r}
+#| label: fig-zes-route-density-map
+#| eval: false
+#| code-fold: true
+#| code-summary: "Show the code"
+#| warning: false
+#| message: false
+
+# ============================================================
+# 0. PACKAGES
+# ============================================================
+
+library(sf)
+library(readr)
+library(readxl)
+library(dplyr)
+library(stringr)
+library(stringi)
+library(leaflet)
+library(htmltools)
+library(scales)
+library(htmlwidgets)
+library(geodata)
+library(terra)
+library(lwgeom)
+
+# ============================================================
+# 1. FILE PATHS
+# ============================================================
+
+socket_path <- "soketenlemboylam.xlsx"
+
+devlet_path <- "devlet_yollari_tek_satir_wkt.csv"
+
+bolge_path <- "18_bolge_rota_analizi.csv"
+
+roads_excel_path <- "roads_D_yol_adi_eklendi.xlsx"
+
+# ============================================================
+# 2. HELPER FUNCTIONS
+# ============================================================
+
+find_col <- function(df, patterns) {
+  nms <- names(df)
+  nms_lower <- tolower(nms)
+  
+  for (p in patterns) {
+    hit <- which(str_detect(nms_lower, p))
+    if (length(hit) > 0) return(nms[hit[1]])
+  }
+  
+  return(NA_character_)
+}
+
+to_num_tr <- function(x) {
+  if (is.numeric(x)) return(x)
+  x <- as.character(x)
+  x <- str_replace_all(x, "\\.", "")
+  x <- str_replace_all(x, ",", ".")
+  suppressWarnings(as.numeric(x))
+}
+
+clean_kkno <- function(x) {
+  x <- as.character(x)
+  x <- str_trim(x)
+  x <- str_replace_all(x, "\\s+", "")
+  
+  kk <- str_extract(x, "\\d{2,3}-\\d{1,2}")
+  
+  kk <- ifelse(
+    !is.na(kk),
+    paste0(
+      str_extract(kk, "^\\d{2,3}"),
+      "-",
+      str_pad(str_extract(kk, "(?<=-)\\d{1,2}"), width = 2, pad = "0")
+    ),
+    NA_character_
+  )
+  
+  kk
+}
+
+clean_city <- function(x) {
+  x <- as.character(x)
+  x <- str_trim(x)
+  x <- str_to_upper(x, locale = "tr")
+  x <- stri_trans_general(x, "Latin-ASCII")
+  x <- str_replace_all(x, "\\s+", " ")
+  x
+}
+
+normalize_city_key <- function(x) {
+  x <- clean_city(x)
+  
+  x <- case_when(
+    x %in% c("AFYON", "AFYONKARAHISAR") ~ "AFYONKARAHISAR",
+    x %in% c("ICEL", "MERSIN") ~ "MERSIN",
+    x %in% c("KAHRAMANMARAS", "K MARAS", "K.MARAS") ~ "KAHRAMANMARAS",
+    x %in% c("SANLIURFA", "S URFA", "S.URFA") ~ "SANLIURFA",
+    TRUE ~ x
+  )
+  
+  x
+}
+
+safe_make_valid <- function(x) {
+  x <- st_make_valid(x)
+  x <- st_collection_extract(x, "LINESTRING", warn = FALSE)
+  x
+}
+
+# ============================================================
+# 3. READ ZES SOCKET DATA
+# ============================================================
+
+socket_sheets <- excel_sheets(socket_path)
+
+socket_raw <- lapply(socket_sheets, function(sh) {
+  read_excel(socket_path, sheet = sh) %>%
+    mutate(source_sheet = sh)
+}) %>%
+  bind_rows()
+
+names(socket_raw) <- str_trim(names(socket_raw))
+
+brand_col <- find_col(
+  socket_raw,
+  c("marka", "brand", "şarj ağı", "sarj agi", "işletmeci", "isletmeci", "operator")
+)
+
+socket_type_col <- find_col(
+  socket_raw,
+  c("soket.*tip", "socket.*type", "soket_tipi", "tipi", "ac.?dc", "connector")
+)
+
+service_col <- find_col(
+  socket_raw,
+  c("hizmet", "halka", "public", "erişim", "erisim", "kullanım", "kullanim")
+)
+
+lon_col <- find_col(
+  socket_raw,
+  c("boylam", "longitude", "^lon$", "lng", "^x$")
+)
+
+lat_col <- find_col(
+  socket_raw,
+  c("enlem", "latitude", "^lat$", "^y$")
+)
+
+name_col <- find_col(
+  socket_raw,
+  c("istasyon.*ad", "station.*name", "ad$", "name")
+)
+
+address_col <- find_col(
+  socket_raw,
+  c("adres", "address")
+)
+
+if (is.na(lon_col) | is.na(lat_col)) {
+  stop("Longitude/latitude columns could not be found.")
+}
+
+if (is.na(socket_type_col)) {
+  stop("Socket type column containing AC/DC information could not be found.")
+}
+
+socket_df <- socket_raw
+
+if (!is.na(brand_col)) {
+  socket_df <- socket_df %>%
+    filter(str_detect(toupper(as.character(.data[[brand_col]])), "ZES"))
+}
+
+socket_clean <- socket_df %>%
+  mutate(
+    lon = to_num_tr(.data[[lon_col]]),
+    lat = to_num_tr(.data[[lat_col]]),
+    
+    socket_type_raw = toupper(as.character(.data[[socket_type_col]])),
+    
+    socket_type = case_when(
+      str_detect(socket_type_raw, "DC") ~ "DC",
+      str_detect(socket_type_raw, "AC") ~ "AC",
+      TRUE ~ "Other"
+    ),
+    
+    service_raw = if (!is.na(service_col)) {
+      toupper(as.character(.data[[service_col]]))
+    } else {
+      "PUBLIC"
+    },
+    
+    service_type = case_when(
+      str_detect(service_raw, "HALKA|PUBLIC|AÇIK|ACIK") ~ "Public",
+      TRUE ~ "Private / Restricted"
+    ),
+    
+    station_name = if (!is.na(name_col)) {
+      as.character(.data[[name_col]])
+    } else {
+      NA_character_
+    },
+    
+    address = if (!is.na(address_col)) {
+      as.character(.data[[address_col]])
+    } else {
+      NA_character_
+    }
+  ) %>%
+  filter(
+    !is.na(lon),
+    !is.na(lat),
+    lon >= 25,
+    lon <= 46,
+    lat >= 35,
+    lat <= 43,
+    socket_type %in% c("AC", "DC")
+  )
+
+set.seed(42)
+
+socket_clean <- socket_clean %>%
+  mutate(
+    lon_plot = lon + runif(n(), -0.008, 0.008),
+    lat_plot = lat + runif(n(), -0.008, 0.008)
+  )
+
+socket_public <- socket_clean %>%
+  filter(service_type == "Public")
+
+socket_private <- socket_clean %>%
+  filter(service_type != "Public")
+
+# ============================================================
+# 4. READ CITY-BASED AUTOMOBILE DENSITY FROM EXCEL
+# ============================================================
+
+devlet_yogt_excel <- read_excel(
+  roads_excel_path,
+  sheet = "devlet_yolları"
+)
+
+kkno_col <- find_col(
+  devlet_yogt_excel,
+  c("^kkno$", "kkno")
+)
+
+city_col_excel <- find_col(
+  devlet_yogt_excel,
+  c("^ili$", "^il$", "şehir", "sehir", "city", "province")
+)
+
+oto_yogt_col <- find_col(
+  devlet_yogt_excel,
+  c("otomobil")
+)
+
+if (is.na(kkno_col)) {
+  stop("KKNO column could not be found in roads Excel.")
+}
+
+if (is.na(city_col_excel)) {
+  stop("City / IL column could not be found in roads Excel.")
+}
+
+if (is.na(oto_yogt_col)) {
+  stop("Automobile AADT column could not be found in roads Excel.")
+}
+
+road_car_density_city <- devlet_yogt_excel %>%
+  mutate(
+    kkno_key = clean_kkno(.data[[kkno_col]]),
+    city_key = normalize_city_key(.data[[city_col_excel]]),
+    car_aadt = to_num_tr(.data[[oto_yogt_col]])
+  ) %>%
+  filter(
+    !is.na(kkno_key),
+    !is.na(city_key),
+    city_key != "",
+    !is.na(car_aadt)
+  ) %>%
+  group_by(kkno_key, city_key) %>%
+  summarise(
+    car_aadt_avg = mean(car_aadt, na.rm = TRUE),
+    car_aadt_max = max(car_aadt, na.rm = TRUE),
+    segment_count = n(),
+    .groups = "drop"
+  )
+
+# ============================================================
+# 5. READ STATE ROAD GEOMETRIES
+# ============================================================
+
+devlet_csv <- read_csv(
+  devlet_path,
+  locale = locale(encoding = "UTF-8"),
+  show_col_types = FALSE
+)
+
+if ("KKNO" %in% names(devlet_csv)) {
+  devlet_csv$kkno_raw <- as.character(devlet_csv$KKNO)
+} else if ("kkno" %in% names(devlet_csv)) {
+  devlet_csv$kkno_raw <- as.character(devlet_csv$kkno)
+} else {
+  devlet_csv$kkno_raw <- NA_character_
+}
+
+devlet_wkt_col <- if ("WKT_LINESTRING" %in% names(devlet_csv)) {
+  "WKT_LINESTRING"
+} else if ("geometry" %in% names(devlet_csv)) {
+  "geometry"
+} else {
+  stop("No WKT_LINESTRING or geometry column found in devlet_yollari_tek_satir_wkt.csv.")
+}
+
+devlet_routes <- devlet_csv %>%
+  filter(
+    !is.na(.data[[devlet_wkt_col]]),
+    .data[[devlet_wkt_col]] != "",
+    str_detect(.data[[devlet_wkt_col]], "LINESTRING")
+  ) %>%
+  mutate(
+    kkno_key = clean_kkno(kkno_raw),
+    WKT_ROUTE = as.character(.data[[devlet_wkt_col]]),
+    route_source = "State Roads"
+  ) %>%
+  filter(!is.na(kkno_key)) %>%
+  distinct(WKT_ROUTE, kkno_key, .keep_all = TRUE)
+
+devlet_sf <- st_as_sf(
+  devlet_routes,
+  wkt = "WKT_ROUTE",
+  crs = 4326
+) %>%
+  safe_make_valid()
+
+# ============================================================
+# 6. READ 18-REGION ROUTE GEOMETRIES
+# ============================================================
+
+bolge_csv <- read_csv(
+  bolge_path,
+  locale = locale(encoding = "UTF-8"),
+  show_col_types = FALSE
+)
+
+bolge_geom_col <- if ("geometry" %in% names(bolge_csv)) {
+  "geometry"
+} else if ("WKT_LINESTRING" %in% names(bolge_csv)) {
+  "WKT_LINESTRING"
+} else {
+  stop("No geometry or WKT_LINESTRING column found in 18_bolge_rota_analizi.csv.")
+}
+
+if ("kkno" %in% names(bolge_csv)) {
+  bolge_csv$kkno_raw <- as.character(bolge_csv$kkno)
+} else if ("KKNO" %in% names(bolge_csv)) {
+  bolge_csv$kkno_raw <- as.character(bolge_csv$KKNO)
+} else {
+  bolge_csv$kkno_raw <- NA_character_
+}
+
+bolge_routes <- bolge_csv %>%
+  filter(
+    !is.na(.data[[bolge_geom_col]]),
+    .data[[bolge_geom_col]] != "",
+    str_detect(.data[[bolge_geom_col]], "LINESTRING")
+  ) %>%
+  mutate(
+    kkno_key = clean_kkno(kkno_raw),
+    WKT_ROUTE = as.character(.data[[bolge_geom_col]]),
+    route_source = "18-Region Routes"
+  ) %>%
+  filter(!is.na(kkno_key)) %>%
+  distinct(WKT_ROUTE, kkno_key, .keep_all = TRUE)
+
+bolge_sf <- st_as_sf(
+  bolge_routes,
+  wkt = "WKT_ROUTE",
+  crs = 4326
+) %>%
+  safe_make_valid()
+
+# ============================================================
+# 7. COMBINE ROUTE GEOMETRIES
+# ============================================================
+
+routes_raw_sf <- bind_rows(
+  devlet_sf %>%
+    select(kkno_key, route_source),
+  bolge_sf %>%
+    select(kkno_key, route_source)
+)
+
+routes_raw_sf <- routes_raw_sf[!st_is_empty(routes_raw_sf), ]
+
+turkey_bbox <- st_bbox(
+  c(xmin = 25.5, ymin = 35.5, xmax = 45.0, ymax = 42.5),
+  crs = st_crs(4326)
+)
+
+routes_raw_sf <- st_crop(routes_raw_sf, turkey_bbox)
+
+# ============================================================
+# 8. GET TURKEY PROVINCE BOUNDARIES
+# ============================================================
+
+tur_adm1 <- geodata::gadm(
+  country = "TUR",
+  level = 1,
+  path = "gadm_cache"
+)
+
+tur_provinces <- st_as_sf(tur_adm1) %>%
+  st_transform(4326)
+
+city_name_col <- if ("NAME_1" %in% names(tur_provinces)) {
+  "NAME_1"
+} else {
+  stop("Province name column NAME_1 could not be found in GADM data.")
+}
+
+tur_provinces <- tur_provinces %>%
+  mutate(
+    city_key = normalize_city_key(.data[[city_name_col]])
+  ) %>%
+  select(city_key, geometry) %>%
+  st_make_valid()
+
+# ============================================================
+# 9. SPLIT ROUTES BY PROVINCE
+# ============================================================
+
+routes_3857 <- routes_raw_sf %>%
+  st_transform(3857) %>%
+  st_make_valid()
+
+provinces_3857 <- tur_provinces %>%
+  st_transform(3857) %>%
+  st_make_valid()
+
+routes_by_city <- suppressWarnings(
+  st_intersection(
+    routes_3857,
+    provinces_3857
+  )
+) %>%
+  st_collection_extract("LINESTRING", warn = FALSE) %>%
+  st_transform(4326)
+
+routes_by_city <- routes_by_city[!st_is_empty(routes_by_city), ]
+
+routes_by_city$segment_length_km <- as.numeric(
+  st_length(
+    st_transform(
+      st_geometry(routes_by_city),
+      3857
+    )
+  )
+) / 1000
+
+routes_by_city <- routes_by_city %>%
+  filter(segment_length_km > 0.05)
+
+# ============================================================
+# 10. JOIN CITY + KKNO DENSITY TO CITY-SPLIT ROUTES
+# ============================================================
+
+routes_density_sf <- routes_by_city %>%
+  left_join(
+    road_car_density_city,
+    by = c("kkno_key", "city_key")
+  )
+
+routes_density_sf <- routes_density_sf %>%
+  filter(!is.na(car_aadt_avg)) %>%
+  mutate(
+    car_aadt_final = car_aadt_avg,
+    route_key = kkno_key
+  )
+
+# ============================================================
+# 11. CLASSIFY ROUTES BY CITY-BASED AUTOMOBILE AADT
+# ============================================================
+
+routes_density_sf <- routes_density_sf %>%
+  mutate(
+    density_class = case_when(
+      car_aadt_final < 10000 ~ "0 - 10.000",
+      car_aadt_final >= 10000 & car_aadt_final < 25000 ~ "10.000 - 25.000",
+      car_aadt_final >= 25000 & car_aadt_final < 50000 ~ "25.000 - 50.000",
+      car_aadt_final >= 50000 & car_aadt_final < 100000 ~ "50.000 - 100.000",
+      car_aadt_final >= 100000 ~ "100.000+",
+      TRUE ~ NA_character_
+    ),
+    density_class = factor(
+      density_class,
+      levels = c(
+        "0 - 10.000",
+        "10.000 - 25.000",
+        "25.000 - 50.000",
+        "50.000 - 100.000",
+        "100.000+"
+      )
+    )
+  )
+
+density_summary <- routes_density_sf %>%
+  st_drop_geometry() %>%
+  group_by(density_class) %>%
+  summarise(
+    count = n(),
+    min_aadt = min(car_aadt_final, na.rm = TRUE),
+    max_aadt = max(car_aadt_final, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(density_class) %>%
+  mutate(
+    legend_label = paste0(
+      as.character(density_class),
+      " | n=", count
+    )
+  )
+
+route_palette <- c(
+  "0 - 10.000" = "#E6FF05",
+  "10.000 - 25.000" = "#F5CC27",
+  "25.000 - 50.000" = "#FF9B05",
+  "50.000 - 100.000" = "#FF0000",
+  "100.000+" = "#A30500"
+)
+
+routes_density_sf <- routes_density_sf %>%
+  left_join(
+    density_summary %>% select(density_class, legend_label),
+    by = "density_class"
+  ) %>%
+  mutate(
+    route_color = route_palette[as.character(density_class)],
+    route_weight = case_when(
+      density_class == "0 - 10.000" ~ 1.2,
+      density_class == "10.000 - 25.000" ~ 1.5,
+      density_class == "25.000 - 50.000" ~ 1.9,
+      density_class == "50.000 - 100.000" ~ 2.3,
+      density_class == "100.000+" ~ 2.8,
+      TRUE ~ 1.5
+    )
+  )
+
+# ============================================================
+# 12. POPUPS
+# ============================================================
+
+routes_density_sf$popup <- paste0(
+  "<b>Route</b><br>",
+  "City: ", routes_density_sf$city_key, "<br>",
+  "KKNO: ", ifelse(is.na(routes_density_sf$route_key), "-", routes_density_sf$route_key), "<br>",
+  "Source: ", routes_density_sf$route_source, "<br>",
+  "Automobile AADT: ", comma(round(routes_density_sf$car_aadt_final), big.mark = "."), " vehicles/day<br>",
+  "Class: ", routes_density_sf$density_class, "<br>",
+  "Segment length: ", round(routes_density_sf$segment_length_km, 2), " km"
+)
+
+socket_public$popup <- paste0(
+  "<b>ZES Socket</b><br>",
+  "Type: ", socket_public$socket_type, "<br>",
+  "Access: ", socket_public$service_type, "<br>",
+  "Station: ", ifelse(is.na(socket_public$station_name), "-", socket_public$station_name), "<br>",
+  "Address: ", ifelse(is.na(socket_public$address), "-", socket_public$address)
+)
+
+socket_private$popup <- paste0(
+  "<b>ZES Socket</b><br>",
+  "Type: ", socket_private$socket_type, "<br>",
+  "Access: ", socket_private$service_type, "<br>",
+  "Station: ", ifelse(is.na(socket_private$station_name), "-", socket_private$station_name), "<br>",
+  "Address: ", ifelse(is.na(socket_private$address), "-", socket_private$address)
+)
+
+public_ac <- socket_public %>% filter(socket_type == "AC")
+public_dc <- socket_public %>% filter(socket_type == "DC")
+private_ac <- socket_private %>% filter(socket_type == "AC")
+private_dc <- socket_private %>% filter(socket_type == "DC")
+
+# ============================================================
+# 13. SMALL TRIANGLE ICONS
+# ============================================================
+
+make_triangle_icon <- function(color) {
+  makeIcon(
+    iconUrl = paste0(
+      "data:image/svg+xml;utf8,",
+      URLencode(
+        paste0(
+          "<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'>",
+          "<polygon points='4,1 7,7 1,7' fill='", color,
+          "' stroke='black' stroke-width='0.5'/>",
+          "</svg>"
+        ),
+        reserved = TRUE
+      )
+    ),
+    iconWidth = 8,
+    iconHeight = 8,
+    iconAnchorX = 4,
+    iconAnchorY = 4
+  )
+}
+
+tri_blue <- make_triangle_icon("#1f78b4")
+tri_red  <- make_triangle_icon("#e31a1c")
+
+# ============================================================
+# 14. LEGEND HTML
+# ============================================================
+
+route_legend_items <- paste0(
+  "<div style='margin-bottom:4px;'>",
+  "<span style='display:inline-block;width:24px;height:4px;background:",
+  route_palette[density_summary$density_class],
+  ";margin-right:6px;vertical-align:middle;'></span>",
+  density_summary$legend_label,
+  "</div>",
+  collapse = ""
+)
+
+legend_html <- HTML(paste0(
+  "<div style='background:white;padding:10px 12px;border-radius:6px;",
+  "box-shadow:0 0 8px rgba(0,0,0,0.25);font-size:11px;line-height:1.35;",
+  "max-width:460px;'>",
+  
+  "<b>Route Automobile Density</b><br>",
+  "<span style='font-size:10px;'>Density is matched by KKNO + province. Long routes are split by province boundaries.</span><br><br>",
+  route_legend_items,
+  
+  "<hr style='margin:7px 0;'>",
+  
+  "<b>ZES Socket Type</b><br>",
+  "<div><span style='display:inline-block;width:8px;height:8px;background:#1f78b4;",
+  "border-radius:50%;border:1px solid black;margin-right:6px;'></span>AC - Public</div>",
+  "<div><span style='display:inline-block;width:8px;height:8px;background:#e31a1c;",
+  "border-radius:50%;border:1px solid black;margin-right:6px;'></span>DC - Public</div>",
+  "<div><span style='display:inline-block;width:0;height:0;border-left:4px solid transparent;",
+  "border-right:4px solid transparent;border-bottom:8px solid #1f78b4;",
+  "margin-right:6px;'></span>AC - Private / Restricted</div>",
+  "<div><span style='display:inline-block;width:0;height:0;border-left:4px solid transparent;",
+  "border-right:4px solid transparent;border-bottom:8px solid #e31a1c;",
+  "margin-right:6px;'></span>DC - Private / Restricted</div>",
+  
+  "</div>"
+))
+
+# ============================================================
+# 15. LEAFLET MAP
+# ============================================================
+
+m <- leaflet(options = leafletOptions(preferCanvas = TRUE)) %>%
+  addProviderTiles(providers$OpenStreetMap.Mapnik, group = "OpenStreetMap") %>%
+  addProviderTiles(providers$CartoDB.Positron, group = "Light") %>%
+  setView(lng = 35.2, lat = 39.0, zoom = 6)
+
+density_order <- c(
+  "0 - 10.000",
+  "10.000 - 25.000",
+  "25.000 - 50.000",
+  "50.000 - 100.000",
+  "100.000+"
+)
+
+for (cls in density_order) {
+  temp_routes <- routes_density_sf %>%
+    filter(density_class == cls)
+  
+  if (nrow(temp_routes) > 0) {
+    this_color <- route_palette[[cls]]
+    
+    m <- m %>%
+      addPolylines(
+        data = temp_routes,
+        color = this_color,
+        weight = ~route_weight,
+        opacity = 0.85,
+        popup = ~popup,
+        group = "Routes - Automobile Density"
+      )
+  }
+}
+
+if (nrow(public_ac) > 0) {
+  m <- m %>%
+    addCircleMarkers(
+      data = public_ac,
+      lng = ~lon_plot,
+      lat = ~lat_plot,
+      radius = 1.5,
+      color = "black",
+      weight = 0.2,
+      fillColor = "#1f78b4",
+      fillOpacity = 0.85,
+      popup = ~popup,
+      group = "ZES AC - Public"
+    )
+}
+
+if (nrow(public_dc) > 0) {
+  m <- m %>%
+    addCircleMarkers(
+      data = public_dc,
+      lng = ~lon_plot,
+      lat = ~lat_plot,
+      radius = 1.8,
+      color = "black",
+      weight = 0.2,
+      fillColor = "#e31a1c",
+      fillOpacity = 0.85,
+      popup = ~popup,
+      group = "ZES DC - Public"
+    )
+}
+
+if (nrow(private_ac) > 0) {
+  m <- m %>%
+    addMarkers(
+      data = private_ac,
+      lng = ~lon_plot,
+      lat = ~lat_plot,
+      icon = tri_blue,
+      popup = ~popup,
+      group = "ZES AC - Private / Restricted"
+    )
+}
+
+if (nrow(private_dc) > 0) {
+  m <- m %>%
+    addMarkers(
+      data = private_dc,
+      lng = ~lon_plot,
+      lat = ~lat_plot,
+      icon = tri_red,
+      popup = ~popup,
+      group = "ZES DC - Private / Restricted"
+    )
+}
+
+m <- m %>%
+  addLayersControl(
+    baseGroups = c("OpenStreetMap", "Light"),
+    overlayGroups = c(
+      "Routes - Automobile Density",
+      "ZES AC - Public",
+      "ZES DC - Public",
+      "ZES AC - Private / Restricted",
+      "ZES DC - Private / Restricted"
+    ),
+    options = layersControlOptions(collapsed = FALSE)
+  ) %>%
+  addControl(
+    legend_html,
+    position = "bottomright"
+  )
+
+m
+```
+
+<iframe src="zes_ac_dc_route_car_density_map_CITY_BASED.html" width="100%" height="700" style="border: none;"></iframe>
+<p style="text-align:center;"><strong>Figure X:</strong> ZES Charging Station Locations by AC/DC Socket Type and Route Automobile Density (EMRA–KGM, April 2026)</p>
