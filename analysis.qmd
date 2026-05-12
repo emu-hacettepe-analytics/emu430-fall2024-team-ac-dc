@@ -118,7 +118,58 @@ leaflet(harita_veri) %>%
             )
 ```
 
-Ömerin harita kodu gelecekk!!
+
+```{r}
+#| label: omer-interactive-map
+#| code-fold: true
+#| warning: false
+#| message: false
+
+# 1. Gerekli Kütüphaneler
+library(readxl)
+library(leaflet)
+library(dplyr)
+
+# 2. Dosyayı Repodan Okuma (file.choose() iptal edildi, doğrudan repo yolu verildi)
+veri <- read_excel("soketenlemboylam.xlsx")
+
+# 3. Veriyi Düzenleme (Enlem, Boylam ve AC/DC Sütunlarını Belirleme)
+veri <- veri %>%
+  mutate(
+    Enlem_E = as.numeric(.[[5]]), 
+    Boylam_F = as.numeric(.[[6]]), 
+    Tip_H = trimws(as.character(.[[8]]))   # Boşluk hatalarını engellemek için trimws() eklendi
+  ) %>%
+  filter(!is.na(Enlem_E) & !is.na(Boylam_F)) 
+
+# 4. Renk Paletini Tanımlama
+renk_paleti <- colorFactor(palette = c("blue", "red"), domain = c("AC", "DC"))
+
+# 5. Haritayı Oluşturma (Jitter Yöntemi ile)
+harita <- leaflet(data = veri) %>%
+  addTiles() %>% 
+  addCircleMarkers(
+    # jitter() fonksiyonu ile noktaları hafifçe dağıtıyoruz
+    lat = ~jitter(Enlem_E, amount = 0.00015), 
+    lng = ~jitter(Boylam_F, amount = 0.00015), 
+    
+    color = ~renk_paleti(Tip_H),     
+    radius = 3,                      # Noktalar yan yana dizileceği için yarıçap 3
+    fillOpacity = 0.7,               # Kesişen yerler belli olsun diye saydamlık
+    stroke = FALSE,                  
+    popup = ~paste("<b>Şarj Tipi:</b>", Tip_H) # Tıklayınca AC/DC bilgisini verir
+  ) %>%
+  addLegend(
+    position = "bottomright", 
+    pal = renk_paleti, 
+    values = ~Tip_H, 
+    title = "İstasyon Tipi",
+    opacity = 1
+  )
+
+# 6. Haritayı Ekrana Yansıtma
+harita
+```
 
 <p style="text-align:center;"><strong>Figure 1:</strong> Number of Electric Vehicles (TÜİK, April 2026)</p>
 
@@ -224,8 +275,45 @@ print(p7)
 ```
 <p style="text-align:center;"><strong>Figure 4:</strong> Socket Density by City — Top 20 Cities (EMRA, April 2026)</p>
 
-<!-- Ömer heat map gelecek -->
+```{r}
+#| label: omer-heatmap
+#| code-fold: true
+#| code-summary: "Show the heatmap code"
+#| warning: false
+#| message: false
 
+# 1. Gerekli Kütüphaneler
+library(readxl)
+library(leaflet)
+library(leaflet.extras) # Isı haritası için kritik paket
+library(dplyr)
+
+# 2. Dosyayı Okuma (Yerel klasörden doğrudan okuma)
+veri <- read_excel("soketenlemboylam.xlsx")
+
+# 3. Veriyi Düzenleme (Enlem ve Boylam sütunları belirleniyor)
+isi_verisi <- veri %>%
+  mutate(
+    Enlem_E = as.numeric(.[[5]]), 
+    Boylam_F = as.numeric(.[[6]])
+  ) %>%
+  filter(!is.na(Enlem_E) & !is.na(Boylam_F)) 
+
+# 4. Isı Haritasını Oluşturma
+harita_isi <- leaflet(data = isi_verisi) %>%
+  addTiles() %>% # Standart harita arka planı
+  setView(lng = 35.2, lat = 39.0, zoom = 6) %>% # Türkiye odaklı başlatma
+  addHeatmap(
+    lat = ~Enlem_E, 
+    lng = ~Boylam_F, 
+    blur = 20,       # Renklerin birbirine geçiş yumuşaklığı
+    max = 0.05,      # Yoğunluk tavan noktası
+    radius = 15      # Isı noktalarının yayılma genişliği
+  )
+
+# 5. Haritayı Ekrana Yansıtma
+harita_isi
+```
 <p style="text-align:center;"><strong>Figure 5:</strong> Charging Station Density Heat Map Across Türkiye (EMRA, April 2026)</p>
 
 ## 3. Competitive Environment
