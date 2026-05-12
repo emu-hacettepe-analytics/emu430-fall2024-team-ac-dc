@@ -6,28 +6,35 @@ theme: lux
 
 This is our project webpage.
 
-![](simsek-mcqueen.gif){style="border-radius: 10px;" fig-align="center" style="border-radius: 10px;"}
+![](simsek-mcqueen.gif){fig-align="center" style="border-radius: 10px; max-width: 100%;"}
+
+<div style="text-align: center; margin-top: 20px; margin-bottom: 30px;">
+  <a href="https://drive.google.com/file/d/1LW72P-hOUSXSLYMuKmWCd8aAeqzb7u7W/view?usp=sharing" target="_blank" class="btn btn-danger btn-lg">▶️ Watch Our Teaser</a>
+</div>
 
 Please stay tuned to follow our project activities.
 
 # Team Members
 
-1.  Azra AZİZOĞLU
-
-2.  Ceren DÖLEK
-
-3.  İlayda GENÇTAV
-
-4.  Meryem ŞİMAYLİ
-
-5.  Ömer Faruk YÜCEL
-
-6.  Öznur MEYDAN
+<div class="d-flex flex-column gap-2" style="margin-bottom: 30px; max-width: 350px;">
+  <span class="btn btn-outline-primary text-start">1. Azra AZİZOĞLU</span>
+  <span class="btn btn-outline-primary text-start">2. Ceren DÖLEK</span>
+  <span class="btn btn-outline-primary text-start">3. İlayda GENÇTAV</span>
+  <span class="btn btn-outline-primary text-start">4. Meryem ŞİMAYLİ</span>
+  <span class="btn btn-outline-primary text-start">5. Ömer Faruk YÜCEL</span>
+  <span class="btn btn-outline-primary text-start">6. Öznur MEYDAN</span>
+</div>
 
 # Project Topic
 
-::: {.callout-tip title="Our Goal"}
-This project evaluates the sufficiency of electric vehicle (EV) charging infrastructure across cities in Türkiye. By analyzing both supply and demand, we aim to identify regions where charging demand exceeds available capacity and provide data-driven investment recommendations for new stations.
+::: {.callout-note appearance="minimal" title="Project Overview"}
+This project provides a comprehensive evaluation of the electric vehicle (EV) charging infrastructure across all 81 provinces in Türkiye. As the adoption of EVs accelerates, ensuring a balanced, accessible, and sufficient charging network is critical for sustainable mobility. By juxtaposing current infrastructure capacities against localized demand metrics, we aim to uncover regional bottlenecks and highlight areas ripe for future investment.
 
-**Key Data Components:** \* **Demand:** Number of registered EVs by city (TÜİK) and average energy consumption per session. \* **Supply:** Charging station locations, socket counts, and power capacities (EPDK).
+Our methodology relies on a data-driven, spatial analysis approach using R, integrating three main pillars:
+
+* *Demand Dynamics:* Analyzing the number of registered EVs by city using *TÜİK* data, supplemented by average daily traffic flow and highway density data from *KGM* to understand actual mobility patterns.
+* *Supply Capabilities:* Mapping the geographical distribution, socket counts, and power capacities (AC vs. DC) of existing public charging stations using *EPDK* statistics.
+* *Spatial & Gap Analysis:* Generating coordinate-based maps and heatmaps to visually identify critical discrepancies where high transit volumes or EV registrations outpace the current charging supply.
+
+Ultimately, this project delivers actionable, data-backed recommendations to optimize the distribution of new charging stations, ensuring the infrastructure meets both current needs and future surges.
 :::

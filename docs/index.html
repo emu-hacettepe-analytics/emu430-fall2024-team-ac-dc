@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.36">
+<meta name="generator" content="quarto-1.9.30">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -39,10 +39,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-2e80ee0097f8c41da2414c4474240d0e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-60667dbd65b3fe9dc2ba7669614f7d1b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -154,35 +154,39 @@ ul.task-list li input[type="checkbox"] {
 <p>This is our project webpage.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="simsek-mcqueen.gif" class="img-fluid quarto-figure quarto-figure-center figure-img" style="border-radius: 10px;;border-radius: 10px;"></p>
+<p><img src="simsek-mcqueen.gif" class="img-fluid quarto-figure quarto-figure-center figure-img" style="border-radius: 10px; max-width: 100%;"></p>
 </figure>
+</div>
+<div style="text-align: center; margin-top: 20px; margin-bottom: 30px;">
+<p><a href="https://drive.google.com/file/d/1LW72P-hOUSXSLYMuKmWCd8aAeqzb7u7W/view?usp=sharing" target="_blank" class="btn btn-danger btn-lg">▶️ Watch Our Teaser</a></p>
 </div>
 <p>Please stay tuned to follow our project activities.</p>
 <section id="team-members" class="level1">
 <h1>Team Members</h1>
-<ol type="1">
-<li><p>Azra AZİZOĞLU</p></li>
-<li><p>Ceren DÖLEK</p></li>
-<li><p>İlayda GENÇTAV</p></li>
-<li><p>Meryem ŞİMAYLİ</p></li>
-<li><p>Ömer Faruk YÜCEL</p></li>
-<li><p>Öznur MEYDAN</p></li>
-</ol>
+<div class="d-flex flex-column gap-2" style="margin-bottom: 30px; max-width: 350px;">
+<p><span class="btn btn-outline-primary text-start">1. Azra AZİZOĞLU</span> <span class="btn btn-outline-primary text-start">2. Ceren DÖLEK</span> <span class="btn btn-outline-primary text-start">3. İlayda GENÇTAV</span> <span class="btn btn-outline-primary text-start">4. Meryem ŞİMAYLİ</span> <span class="btn btn-outline-primary text-start">5. Ömer Faruk YÜCEL</span> <span class="btn btn-outline-primary text-start">6. Öznur MEYDAN</span></p>
+</div>
 </section>
 <section id="project-topic" class="level1">
 <h1>Project Topic</h1>
-<div class="callout callout-style-default callout-tip callout-titled" title="Our Goal">
+<div class="callout callout-style-simple callout-note no-icon callout-titled" title="Project Overview">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
-<i class="callout-icon"></i>
+<i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Our Goal
+<span class="screen-reader-only">Note</span>Project Overview
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This project evaluates the sufficiency of electric vehicle (EV) charging infrastructure across cities in Türkiye. By analyzing both supply and demand, we aim to identify regions where charging demand exceeds available capacity and provide data-driven investment recommendations for new stations.</p>
-<p><strong>Key Data Components:</strong> * <strong>Demand:</strong> Number of registered EVs by city (TÜİK) and average energy consumption per session. * <strong>Supply:</strong> Charging station locations, socket counts, and power capacities (EPDK).</p>
+<p>This project provides a comprehensive evaluation of the electric vehicle (EV) charging infrastructure across all 81 provinces in Türkiye. As the adoption of EVs accelerates, ensuring a balanced, accessible, and sufficient charging network is critical for sustainable mobility. By juxtaposing current infrastructure capacities against localized demand metrics, we aim to uncover regional bottlenecks and highlight areas ripe for future investment.</p>
+<p>Our methodology relies on a data-driven, spatial analysis approach using R, integrating three main pillars:</p>
+<ul>
+<li><em>Demand Dynamics:</em> Analyzing the number of registered EVs by city using <em>TÜİK</em> data, supplemented by average daily traffic flow and highway density data from <em>KGM</em> to understand actual mobility patterns.</li>
+<li><em>Supply Capabilities:</em> Mapping the geographical distribution, socket counts, and power capacities (AC vs.&nbsp;DC) of existing public charging stations using <em>EPDK</em> statistics.</li>
+<li><em>Spatial &amp; Gap Analysis:</em> Generating coordinate-based maps and heatmaps to visually identify critical discrepancies where high transit volumes or EV registrations outpace the current charging supply.</li>
+</ul>
+<p>Ultimately, this project delivers actionable, data-backed recommendations to optimize the distribution of new charging stations, ensuring the infrastructure meets both current needs and future surges.</p>
 </div>
 </div>
 
