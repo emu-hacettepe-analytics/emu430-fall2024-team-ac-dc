@@ -15,7 +15,7 @@ execute:
   message: false
 ---
 
-## Öznur Türkiye Electric Vehicle Charging Infrastructure
+## Türkiye Electric Vehicle Charging Infrastructure
 
 
 This analysis presents a data-driven overview of Türkiye’s electric vehicle charging infrastructure. The study focuses on market growth, socket distribution, operator strategies, geographical concentration, and the spatial relationship between charging stations and highway traffic density.
@@ -50,11 +50,11 @@ Türkiye’s electric vehicle fleet has shown exponential growth over the last d
 However, the number of electric vehicles and the number of charging sockets are not directly proportional across provinces. Some cities have high EV ownership and dense charging infrastructure, while others still show infrastructure gaps. Therefore, city level EV density should be analyzed together with socket availability, operator presence, and road traffic intensity.
 
 ```{r}
+#| label: fig-ev-density-map
 #| code-fold: true
 #| code-summary: "Show the code"
 #| warning: false
 #| message: false
-
 
 library(dplyr)
 library(tidyverse)
@@ -63,34 +63,38 @@ library(leaflet)
 library(rnaturalearth)
 library(stringi)
 
-df <- read.csv("NumofEV.csv", 
-               header = TRUE, 
-               sep = ";",
-               encoding = "UTF-8")
+df <- read.csv(
+  "NumofEV.csv", 
+  header = TRUE, 
+  sep = ";",
+  encoding = "UTF-8"
+)
 
 tr_map <- ne_states(country = "Turkey", returnclass = "sf")
 
-plot(st_geometry(tr_map))
-
 df$City <- stri_trans_general(df$City, "latin-ascii")
-
 tr_map$name <- stri_trans_general(tr_map$name, "latin-ascii")
 
-
 df <- df %>%
-  mutate(City = case_when(
-    City == "Zonguldak" ~ "Zinguldak",
-    City == "Kahramanmaras" ~ "K. Maras",
-    City == "Kirikkale" ~ "Kinkkale",
-    TRUE ~ City
-  )) 
+  mutate(
+    City = case_when(
+      City == "Zonguldak" ~ "Zinguldak",
+      City == "Kahramanmaras" ~ "K. Maras",
+      City == "Kirikkale" ~ "Kinkkale",
+      TRUE ~ City
+    )
+  )
 
 harita_veri <- left_join(tr_map, df, by = c("name" = "City"))
 
 harita_veri <- harita_veri %>%
   mutate(EVcount_log = log10(EVcount + 1))
 
-pal <- colorNumeric(palette = "YlOrRd", domain = harita_veri$EVcount_log, na.color = "transparent")
+pal <- colorNumeric(
+  palette = "YlOrRd", 
+  domain = harita_veri$EVcount_log, 
+  na.color = "transparent"
+)
 
 leaflet(harita_veri) %>%
   addProviderTiles(providers$CartoDB.Positron) %>% 
@@ -104,21 +108,26 @@ leaflet(harita_veri) %>%
       weight = 3,
       color = "#666",
       fillOpacity = 0.9,
-      bringToFront = TRUE),
+      bringToFront = TRUE
+    ),
     label = ~paste0(name, ": ", EVcount), 
     labelOptions = labelOptions(
       style = list("font-weight" = "normal", padding = "3px 8px"),
       textsize = "13px",
-      direction = "auto")
+      direction = "auto"
+    )
   ) %>%
-  addLegend(pal = pal, 
-            values = ~EVcount_log,             
-            opacity = 0.7, 
-            title = "Number of Electric Vehicles",
-            position = "bottomright",
-            labFormat = labelFormat(transform = function(x) round(10^x - 1),
-                                    big.mark = ",")
-            )
+  addLegend(
+    pal = pal, 
+    values = ~EVcount_log,             
+    opacity = 0.7, 
+    title = "Number of Electric Vehicles",
+    position = "bottomright",
+    labFormat = labelFormat(
+      transform = function(x) round(10^x - 1),
+      big.mark = ","
+    )
+  )
 ```
 
 
