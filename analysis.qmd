@@ -7,6 +7,9 @@ format:
     code-fold: true
     theme: lux
     code-summary: "Show the code"
+    toc: true
+    toc-location: left
+    toc-depth: 3
 execute:
   warning: false
   message: false
