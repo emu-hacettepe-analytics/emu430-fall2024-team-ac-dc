@@ -8,7 +8,7 @@ title: "Data"
 
 ...
 
-This study combines multiple data sources to analyze Türkiye’s electric vehicle charging infrastructure from both a market and spatial perspective. The main datasets used in the analysis are listed below:
+ABThis study combines multiple data sources to analyze Türkiye’s electric vehicle charging infrastructure from both a market and spatial perspective. The main datasets used in the analysis are listed below:
 
 -   **EMRA Charging Station Registry, April 2026**
 -   **EMRA Monthly Charging Market Statistics, March 2026**
